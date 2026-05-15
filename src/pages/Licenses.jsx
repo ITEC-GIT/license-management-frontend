@@ -126,7 +126,6 @@ export default function Licenses() {
 
       <section className="license-ribbon" aria-label="License lifecycle overview">
         <div className="ribbon-copy">
-          <span className="section-kicker">Lifecycle map</span>
           <h2>Every entitlement, from issue to enforcement</h2>
           <p>Track operational state, device binding, and customer ownership without leaving the registry.</p>
         </div>
@@ -151,7 +150,6 @@ export default function Licenses() {
       <div className="card registry-card">
         <div className="card-header">
           <div>
-            <span className="section-kicker">Registry</span>
             <h2>All licenses</h2>
           </div>
         </div>
