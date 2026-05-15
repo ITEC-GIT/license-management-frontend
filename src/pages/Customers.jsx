@@ -77,7 +77,6 @@ export default function Customers() {
   return (
     <div>
       <header className="page-header">
-        <span className="eyebrow">Customer intelligence</span>
         <h1 className="page-title">Customers</h1>
         <p className="page-subtitle">Understand customer entitlement coverage, license concentration, and accounts that need attention.</p>
       </header>

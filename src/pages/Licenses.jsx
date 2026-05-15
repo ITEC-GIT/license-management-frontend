@@ -114,7 +114,6 @@ export default function Licenses() {
     <div>
       <header className="page-header page-header-actions">
         <div>
-          <span className="eyebrow">License registry</span>
           <h1 className="page-title">Licenses</h1>
           <p className="page-subtitle">Create, filter, and manage signed license keys across every customer environment.</p>
         </div>

@@ -166,16 +166,6 @@ export default function Layout() {
       </aside>
 
       <main className="main-content">
-        <div className="topbar" role="status" aria-label="Console status">
-          <div>
-            <span className="topbar-kicker">Operations workspace</span>
-            <strong>License lifecycle control</strong>
-          </div>
-          <span className="topbar-status">
-            <span className="status-dot" aria-hidden="true" />
-            Active session
-          </span>
-        </div>
         <div className="main-content-inner fade-in-up">
           <Outlet />
         </div>
