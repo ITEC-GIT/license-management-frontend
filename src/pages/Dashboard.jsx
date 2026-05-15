@@ -125,28 +125,24 @@ export default function Dashboard() {
 
         <section className="signal-board" aria-label="License signal summary">
           <div className="signal-card signal-total">
-            <span className="signal-icon">01</span>
             <div>
               <span className="metric-label">Total keys</span>
               <strong>{stats.total}</strong>
             </div>
           </div>
           <div className="signal-card signal-active">
-            <span className="signal-icon">02</span>
             <div>
               <span className="metric-label">Active</span>
               <strong>{stats.active}</strong>
             </div>
           </div>
           <div className="signal-card signal-warning">
-            <span className="signal-icon">03</span>
             <div>
               <span className="metric-label">Expired</span>
               <strong>{stats.expired}</strong>
             </div>
           </div>
           <div className="signal-card signal-danger">
-            <span className="signal-icon">04</span>
             <div>
               <span className="metric-label">Revoked</span>
               <strong>{stats.revoked}</strong>
