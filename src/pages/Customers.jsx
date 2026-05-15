@@ -86,7 +86,6 @@ export default function Customers() {
       <section className="customer-atlas">
         <div className="card-header">
           <div>
-            <span className="section-kicker">Portfolio</span>
             <h2>Customer insights</h2>
           </div>
         </div>
