@@ -28,7 +28,9 @@ export default function Login() {
 
   return (
     <div className="login-container">
+      <div className="login-grid" aria-hidden="true" />
       <div className="login-box">
+        <div className="login-sheen" aria-hidden="true" />
         <div className="login-brand">
           <span className="login-logo" aria-hidden="true">
             <span className="login-logo-inner">LM</span>

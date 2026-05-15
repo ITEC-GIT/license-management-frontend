@@ -71,6 +71,8 @@ export default function Layout() {
 
   return (
     <div className="app">
+      <div className="app-orb app-orb-one" aria-hidden="true" />
+      <div className="app-orb app-orb-two" aria-hidden="true" />
       <aside className="sidebar" aria-label="Main navigation">
         <div className="sidebar-glow" aria-hidden="true" />
         <div className="sidebar-header">
@@ -119,9 +121,7 @@ export default function Layout() {
       </aside>
 
       <main className="main-content">
-        <div className="main-content-inner fade-in-up">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
     </div>
   )
