@@ -126,16 +126,14 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                 onChange={handleChange}
                 placeholder="Leave empty for no hardware binding"
               />
-              <small style={{ color: '#666', fontSize: '12px' }}>
-                Binds license to specific hardware
-              </small>
+              <small className="form-hint">Binds license to specific hardware</small>
             </div>
           </div>
 
           <div className="modal-footer">
-            <button 
-              type="button" 
-              className="btn" 
+            <button
+              type="button"
+              className="btn btn-outline"
               onClick={onClose}
               disabled={loading}
             >

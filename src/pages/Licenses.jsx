@@ -61,14 +61,20 @@ export default function Licenses() {
     URL.revokeObjectURL(url)
   }
 
-  const filteredLicenses = licenses.filter(license => {
+  const filteredLicenses = licenses.filter((license) => {
     if (filter === 'all') return true
     const now = new Date()
     if (filter === 'active') {
-      return license.is_active && (!license.expires_at || new Date(license.expires_at) > now) && !license.revoked_at
+      return (
+        license.is_active &&
+        (!license.expires_at || new Date(license.expires_at) > now) &&
+        !license.revoked_at
+      )
     }
     if (filter === 'expired') {
-      return license.expires_at && new Date(license.expires_at) <= now && !license.revoked_at
+      return (
+        license.expires_at && new Date(license.expires_at) <= now && !license.revoked_at
+      )
     }
     if (filter === 'revoked') {
       return license.revoked_at
@@ -87,37 +93,43 @@ export default function Licenses() {
 
   return (
     <div>
+      <header className="page-header">
+        <h1 className="page-title">Licenses</h1>
+        <p className="page-subtitle">Create, filter, and manage license keys</p>
+      </header>
+
       <div className="card">
         <div className="card-header">
-          <h2>Licenses</h2>
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowGenerateModal(true)}
-          >
-            + Generate License
+          <h2>All licenses</h2>
+          <button className="btn btn-primary" onClick={() => setShowGenerateModal(true)}>
+            Generate license
           </button>
         </div>
 
-        <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-          <button 
+        <div className="filter-toolbar">
+          <button
+            type="button"
             className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : ''}`}
             onClick={() => setFilter('all')}
           >
             All ({licenses.length})
           </button>
-          <button 
+          <button
+            type="button"
             className={`btn btn-sm ${filter === 'active' ? 'btn-success' : ''}`}
             onClick={() => setFilter('active')}
           >
             Active
           </button>
-          <button 
+          <button
+            type="button"
             className={`btn btn-sm ${filter === 'expired' ? 'btn-warning' : ''}`}
             onClick={() => setFilter('expired')}
           >
             Expired
           </button>
-          <button 
+          <button
+            type="button"
             className={`btn btn-sm ${filter === 'revoked' ? 'btn-danger' : ''}`}
             onClick={() => setFilter('revoked')}
           >
@@ -150,47 +162,51 @@ export default function Licenses() {
                     <td>#{license.id}</td>
                     <td>{license.customer_id || 'N/A'}</td>
                     <td>
-                      <span className="badge badge-info">
-                        {license.license_type}
-                      </span>
+                      <span className="badge badge-info">{license.license_type}</span>
                     </td>
                     <td>{new Date(license.issued_at).toLocaleDateString()}</td>
                     <td>
-                      {license.expires_at 
-                        ? new Date(license.expires_at).toLocaleDateString() 
+                      {license.expires_at
+                        ? new Date(license.expires_at).toLocaleDateString()
                         : 'Never'}
                     </td>
-                    <td>
-                      {license.hardware_id 
-                        ? <span title={license.hardware_id}>🔒 {license.hardware_id.slice(0, 8)}...</span>
-                        : 'N/A'}
+                    <td className="cell-mono">
+                      {license.hardware_id ? (
+                        <span title={license.hardware_id}>
+                          {license.hardware_id.slice(0, 8)}…
+                        </span>
+                      ) : (
+                        'N/A'
+                      )}
                     </td>
                     <td>
                       {license.revoked_at ? (
                         <span className="badge badge-danger">Revoked</span>
-                      ) : license.expires_at && new Date(license.expires_at) <= new Date() ? (
+                      ) : license.expires_at &&
+                        new Date(license.expires_at) <= new Date() ? (
                         <span className="badge badge-warning">Expired</span>
                       ) : (
                         <span className="badge badge-success">Active</span>
                       )}
                     </td>
-                    <td>
-                      <button 
+                    <td className="td-actions">
+                      <button
+                        type="button"
                         className="btn btn-sm btn-primary"
                         onClick={() => setViewLicense(license)}
-                        style={{ marginRight: '5px' }}
                       >
                         View
                       </button>
-                      <button 
+                      <button
+                        type="button"
                         className="btn btn-sm btn-success"
                         onClick={() => handleDownload(license)}
-                        style={{ marginRight: '5px' }}
                       >
                         Download
                       </button>
                       {!license.revoked_at && (
-                        <button 
+                        <button
+                          type="button"
                           className="btn btn-sm btn-danger"
                           onClick={() => handleRevoke(license.id)}
                         >
@@ -214,10 +230,7 @@ export default function Licenses() {
       )}
 
       {viewLicense && (
-        <ViewLicenseModal
-          license={viewLicense}
-          onClose={() => setViewLicense(null)}
-        />
+        <ViewLicenseModal license={viewLicense} onClose={() => setViewLicense(null)} />
       )}
     </div>
   )

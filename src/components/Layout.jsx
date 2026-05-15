@@ -15,32 +15,43 @@ export default function Layout() {
     <div className="app">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h1>🔐 License Manager</h1>
-          <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-            {user?.full_name || user?.username}
-          </p>
+          <div className="sidebar-brand">
+            <span className="sidebar-logo" aria-hidden="true">
+              LM
+            </span>
+            <div>
+              <h1>License Manager</h1>
+            </div>
+          </div>
+          <p className="sidebar-meta">{user?.full_name || user?.username}</p>
         </div>
-        
+
         <nav>
           <ul className="sidebar-nav">
             <li>
               <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
-                📊 Dashboard
+                Dashboard
               </Link>
             </li>
             <li>
-              <Link to="/licenses" className={location.pathname === '/licenses' ? 'active' : ''}>
-                🎫 Licenses
+              <Link
+                to="/licenses"
+                className={location.pathname === '/licenses' ? 'active' : ''}
+              >
+                Licenses
               </Link>
             </li>
             <li>
-              <Link to="/customers" className={location.pathname === '/customers' ? 'active' : ''}>
-                👥 Customers
+              <Link
+                to="/customers"
+                className={location.pathname === '/customers' ? 'active' : ''}
+              >
+                Customers
               </Link>
             </li>
-            <li style={{ marginTop: '20px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-              <a href="#" onClick={handleLogout} style={{ color: '#ef4444' }}>
-                🚪 Logout
+            <li>
+              <a href="#" className="nav-logout" onClick={handleLogout}>
+                Logout
               </a>
             </li>
           </ul>

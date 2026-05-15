@@ -22,10 +22,10 @@ export default function Dashboard() {
 
       // Calculate stats
       const now = new Date()
-      const active = licenses.filter(l => 
+      const active = licenses.filter(l =>
         l.is_active && (!l.expires_at || new Date(l.expires_at) > now)
       ).length
-      const expired = licenses.filter(l => 
+      const expired = licenses.filter(l =>
         l.expires_at && new Date(l.expires_at) <= now && !l.revoked_at
       ).length
       const revoked = licenses.filter(l => l.revoked_at).length
@@ -57,24 +57,27 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '30px' }}>Dashboard</h1>
+      <header className="page-header">
+        <h1 className="page-title">Dashboard</h1>
+        <p className="page-subtitle">Overview of licenses and recent activity</p>
+      </header>
 
       <div className="stats-grid">
         <div className="stat-card primary">
           <h3>Total Licenses</h3>
           <div className="stat-value">{stats.total}</div>
         </div>
-        
+
         <div className="stat-card success">
           <h3>Active Licenses</h3>
           <div className="stat-value">{stats.active}</div>
         </div>
-        
+
         <div className="stat-card warning">
           <h3>Expired Licenses</h3>
           <div className="stat-value">{stats.expired}</div>
         </div>
-        
+
         <div className="stat-card danger">
           <h3>Revoked Licenses</h3>
           <div className="stat-value">{stats.revoked}</div>
@@ -109,20 +112,19 @@ export default function Dashboard() {
                     <td>#{license.id}</td>
                     <td>{license.customer_id || 'N/A'}</td>
                     <td>
-                      <span className="badge badge-info">
-                        {license.license_type}
-                      </span>
+                      <span className="badge badge-info">{license.license_type}</span>
                     </td>
                     <td>{new Date(license.issued_at).toLocaleDateString()}</td>
                     <td>
-                      {license.expires_at 
-                        ? new Date(license.expires_at).toLocaleDateString() 
+                      {license.expires_at
+                        ? new Date(license.expires_at).toLocaleDateString()
                         : 'Never'}
                     </td>
                     <td>
                       {license.revoked_at ? (
                         <span className="badge badge-danger">Revoked</span>
-                      ) : license.expires_at && new Date(license.expires_at) <= new Date() ? (
+                      ) : license.expires_at &&
+                        new Date(license.expires_at) <= new Date() ? (
                         <span className="badge badge-warning">Expired</span>
                       ) : (
                         <span className="badge badge-success">Active</span>

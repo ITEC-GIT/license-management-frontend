@@ -16,20 +16,23 @@ export default function Customers() {
 
       // Group by customer_id
       const customerMap = {}
-      licenses.forEach(license => {
+      licenses.forEach((license) => {
         const customerId = license.customer_id || 'Unknown'
         if (!customerMap[customerId]) {
           customerMap[customerId] = {
             id: customerId,
             licenses: [],
             activeLicenses: 0,
-            expiredLicenses: 0,
+            expiredLicenses: 0
           }
         }
         customerMap[customerId].licenses.push(license)
-        
+
         const now = new Date()
-        if (license.is_active && (!license.expires_at || new Date(license.expires_at) > now)) {
+        if (
+          license.is_active &&
+          (!license.expires_at || new Date(license.expires_at) > now)
+        ) {
           customerMap[customerId].activeLicenses++
         } else if (license.expires_at && new Date(license.expires_at) <= now) {
           customerMap[customerId].expiredLicenses++
@@ -55,9 +58,14 @@ export default function Customers() {
 
   return (
     <div>
+      <header className="page-header">
+        <h1 className="page-title">Customers</h1>
+        <p className="page-subtitle">Derived from license records</p>
+      </header>
+
       <div className="card">
         <div className="card-header">
-          <h2>Customers</h2>
+          <h2>Customer list</h2>
         </div>
 
         {customers.length === 0 ? (
@@ -79,21 +87,19 @@ export default function Customers() {
               <tbody>
                 {customers.map((customer) => (
                   <tr key={customer.id}>
-                    <td><strong>{customer.id}</strong></td>
+                    <td>
+                      <strong>{customer.id}</strong>
+                    </td>
                     <td>{customer.licenses.length}</td>
                     <td>
-                      <span className="badge badge-success">
-                        {customer.activeLicenses}
-                      </span>
+                      <span className="badge badge-success">{customer.activeLicenses}</span>
                     </td>
                     <td>
-                      <span className="badge badge-warning">
-                        {customer.expiredLicenses}
-                      </span>
+                      <span className="badge badge-warning">{customer.expiredLicenses}</span>
                     </td>
                     <td>
                       {new Date(
-                        Math.max(...customer.licenses.map(l => new Date(l.issued_at)))
+                        Math.max(...customer.licenses.map((l) => new Date(l.issued_at)))
                       ).toLocaleDateString()}
                     </td>
                   </tr>
@@ -104,11 +110,11 @@ export default function Customers() {
         )}
       </div>
 
-      <div className="card" style={{ marginTop: '20px' }}>
+      <div className="card card-spaced-top">
         <div className="card-header">
-          <h2>Customer Insights</h2>
+          <h2>Customer insights</h2>
         </div>
-        <div style={{ padding: '20px' }}>
+        <div className="card-section-body">
           <div className="stats-grid">
             <div className="stat-card primary">
               <h3>Total Customers</h3>
@@ -117,23 +123,26 @@ export default function Customers() {
             <div className="stat-card success">
               <h3>Avg Licenses/Customer</h3>
               <div className="stat-value">
-                {customers.length > 0 
-                  ? (customers.reduce((acc, c) => acc + c.licenses.length, 0) / customers.length).toFixed(1)
+                {customers.length > 0
+                  ? (
+                      customers.reduce((acc, c) => acc + c.licenses.length, 0) /
+                      customers.length
+                    ).toFixed(1)
                   : '0'}
               </div>
             </div>
             <div className="stat-card warning">
               <h3>Most Licenses</h3>
               <div className="stat-value">
-                {customers.length > 0 
-                  ? Math.max(...customers.map(c => c.licenses.length))
+                {customers.length > 0
+                  ? Math.max(...customers.map((c) => c.licenses.length))
                   : '0'}
               </div>
             </div>
             <div className="stat-card danger">
               <h3>Need Attention</h3>
               <div className="stat-value">
-                {customers.filter(c => c.expiredLicenses > 0).length}
+                {customers.filter((c) => c.expiredLicenses > 0).length}
               </div>
             </div>
           </div>

@@ -22,21 +22,24 @@ export default function Login() {
     } else {
       setError(result.error)
     }
-    
+
     setLoading(false)
   }
 
   return (
     <div className="login-container">
       <div className="login-box">
-        <h1>🔐 License Manager</h1>
-        <p>Sign in to manage your licenses</p>
-
-        {error && (
-          <div className="alert alert-danger">
-            {error}
+        <div className="login-brand">
+          <span className="login-logo" aria-hidden="true">
+            LM
+          </span>
+          <div>
+            <h1>License Manager</h1>
+            <p className="login-tagline">Sign in to manage your licenses</p>
           </div>
-        )}
+        </div>
+
+        {error && <div className="alert alert-danger">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -60,8 +63,8 @@ export default function Login() {
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary btn-block"
             disabled={loading}
           >
@@ -69,12 +72,12 @@ export default function Login() {
           </button>
         </form>
 
-        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#666' }}>
-          <p>Default credentials:</p>
-          <p><strong>admin</strong> / <strong>admin123</strong></p>
-          <p style={{ fontSize: '12px', color: '#999', marginTop: '10px' }}>
-            ⚠️ Change password after first login
+        <div className="login-footnote">
+          <p>Default credentials</p>
+          <p>
+            <strong>admin</strong> / <strong>admin123</strong>
           </p>
+          <p className="login-warning">Change the password after first login.</p>
         </div>
       </div>
     </div>
