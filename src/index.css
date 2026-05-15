@@ -495,6 +495,12 @@ body::after {
   color: transparent;
 }
 
+.dashboard-hero .page-title {
+  font-family: var(--font);
+  font-weight: 800;
+  letter-spacing: -0.055em;
+}
+
 .page-subtitle {
   margin-top: 0.45rem;
   font-size: 1rem;
@@ -617,9 +623,10 @@ body::after {
 
 .hero-card strong {
   display: block;
-  font-family: var(--font-display);
+  font-family: var(--font);
   font-size: 1.8rem;
-  letter-spacing: -0.06em;
+  font-weight: 800;
+  letter-spacing: -0.045em;
   line-height: 1.05;
 }
 
@@ -1147,10 +1154,10 @@ body::after {
 }
 
 .stat-card .stat-value {
-  font-family: var(--font-display);
+  font-family: var(--font);
   font-size: clamp(1.85rem, 3.2vw, 2.35rem);
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.045em;
   color: var(--text);
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
