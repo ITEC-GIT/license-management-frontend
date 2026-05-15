@@ -125,7 +125,6 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
       <div className="modal wizard-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <span className="modal-eyebrow">License wizard</span>
             <h2>Generate New License</h2>
             <p className="modal-header-copy">{steps[currentStep].description}</p>
           </div>
