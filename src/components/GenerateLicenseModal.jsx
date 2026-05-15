@@ -117,7 +117,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
           <button className="modal-close" onClick={onClose}>&times;</button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form className="modal-form" onSubmit={handleSubmit}>
           <div className="modal-body">
             {error && (
               <div className="alert alert-danger">
