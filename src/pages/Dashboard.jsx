@@ -76,7 +76,6 @@ export default function Dashboard() {
     <div>
       <header className="page-header dashboard-hero">
         <div className="hero-copy">
-          <span className="eyebrow">Command overview</span>
           <h1 className="page-title">License Operations Dashboard</h1>
           <p className="page-subtitle">
             Monitor license health, lifecycle movement, and customer entitlement activity from one secure workspace.
