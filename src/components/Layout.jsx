@@ -120,10 +120,11 @@ export default function Layout() {
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <span className="sidebar-logo" aria-hidden="true">
-              <span className="sidebar-logo-inner">LM</span>
+              <span className="sidebar-logo-inner">LC</span>
             </span>
             <div>
-              <h1>License Manager</h1>
+              <h1>License Console</h1>
+              <span className="sidebar-product-tag">Management System</span>
             </div>
           </div>
           <p className="sidebar-meta">
@@ -133,6 +134,7 @@ export default function Layout() {
         </div>
 
         <nav>
+          <p className="sidebar-section-label">License Management</p>
           <ul className="sidebar-nav">
             <li>
               <NavLink to="/" end className={navLinkClass}>
