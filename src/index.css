@@ -3036,7 +3036,34 @@ body::before {
 }
 
 .customer-atlas {
-  grid-template-columns: minmax(0, 0.9fr) minmax(260px, 0.9fr);
+  display: block;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  grid-template-columns: none;
+}
+
+.customer-atlas .card-header {
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.75rem;
+}
+
+.customer-atlas .card-section-body {
+  padding: 0;
+}
+
+.customer-atlas .stats-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0;
+}
+
+.customer-atlas .stat-card {
+  min-height: 0;
+  padding: 0.9rem 1rem;
+}
+
+.customer-atlas .stat-card .stat-value {
+  font-size: clamp(1.5rem, 2.4vw, 1.95rem);
 }
 
 .atlas-stack {
