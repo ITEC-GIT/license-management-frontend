@@ -31,7 +31,7 @@ export default function Login() {
       <div className="login-box">
         <div className="login-brand">
           <span className="login-logo" aria-hidden="true">
-            LM
+            <span className="login-logo-inner">LM</span>
           </span>
           <div>
             <h1>License Manager</h1>
