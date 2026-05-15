@@ -30,14 +30,21 @@ function NavIconKey() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M8.5 13.5a4.5 4.5 0 1 1 3.2-1.3L20 20.5"
+        d="M6 4.5h9l3 3v12H6v-15Z"
       />
       <path
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M15.8 16.3 18 14.1M17.7 18.2l2.2-2.2M8.5 8.5h.01"
+        d="M15 4.5V8h3M9 9.5h4M9 12.5h3"
+      />
+      <path
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M14.5 17.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-1.3-.4-.5 2.4 1.8-1 1.8 1-.5-2.4"
       />
     </svg>
   )
