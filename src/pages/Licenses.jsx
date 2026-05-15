@@ -125,7 +125,31 @@ export default function Licenses() {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <div className="card">
+      <section className="license-ribbon" aria-label="License lifecycle overview">
+        <div className="ribbon-copy">
+          <span className="section-kicker">Lifecycle map</span>
+          <h2>Every entitlement, from issue to enforcement</h2>
+          <p>Track operational state, device binding, and customer ownership without leaving the registry.</p>
+        </div>
+        <div className="ribbon-track" aria-hidden="true">
+          <span className="ribbon-node active-node">
+            <strong>{statusCounts.active}</strong>
+            Active
+          </span>
+          <span className="ribbon-line" />
+          <span className="ribbon-node warning-node">
+            <strong>{statusCounts.expired}</strong>
+            Expired
+          </span>
+          <span className="ribbon-line" />
+          <span className="ribbon-node danger-node">
+            <strong>{statusCounts.revoked}</strong>
+            Revoked
+          </span>
+        </div>
+      </section>
+
+      <div className="card registry-card">
         <div className="card-header">
           <div>
             <span className="section-kicker">Registry</span>
@@ -204,12 +228,14 @@ export default function Licenses() {
               </thead>
               <tbody>
                 {filteredLicenses.map((license) => (
-                  <tr key={license.id}>
-                    <td data-label="ID">#{license.id}</td>
+                  <tr key={license.id} className={`registry-row row-${getLicenseStatus(license)}`}>
+                    <td data-label="ID">
+                      <span className="license-id-token">#{license.id}</span>
+                    </td>
                     <td data-label="Customer">
                       <div className="record-title">
                         <strong>{license.customer_id || 'Unassigned'}</strong>
-                        <span>License #{license.id}</span>
+                        <span>{license.hardware_id ? 'Hardware-bound key' : 'Floating entitlement'}</span>
                       </div>
                     </td>
                     <td data-label="Type">

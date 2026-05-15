@@ -62,6 +62,8 @@ export default function Customers() {
         customer.licenses.length > top.licenses.length ? customer : top
       )
     : null
+  const attentionCustomers = customers.filter((customer) => customer.expiredLicenses > 0).length
+  const topCustomers = customers.slice(0, 3)
 
   if (loading) {
     return (
@@ -82,7 +84,47 @@ export default function Customers() {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <div className="card">
+      <section className="customer-atlas">
+        <div className="card card-spaced-top">
+          <div className="card-header">
+            <div>
+              <span className="section-kicker">Portfolio</span>
+              <h2>Customer insights</h2>
+            </div>
+          </div>
+          <div className="card-section-body">
+            <div className="stats-grid">
+              <div className="stat-card primary">
+                <h3>Total Customers</h3>
+                <div className="stat-value">{customers.length}</div>
+              </div>
+              <div className="stat-card success">
+                <h3>Avg Licenses/Customer</h3>
+                <div className="stat-value">
+                  {customers.length > 0
+                    ? (totalLicenses / customers.length).toFixed(1)
+                    : '0'}
+                </div>
+              </div>
+              <div className="stat-card warning">
+                <h3>Most Licenses</h3>
+                <div className="stat-value">
+                  {mostLicensedCustomer ? mostLicensedCustomer.licenses.length : '0'}
+                </div>
+                {mostLicensedCustomer && <span className="form-hint">{mostLicensedCustomer.id}</span>}
+              </div>
+              <div className="stat-card danger">
+                <h3>Need Attention</h3>
+                <div className="stat-value">
+                  {customers.filter((c) => c.expiredLicenses > 0).length}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="card customer-card">
         <div className="card-header">
           <div>
             <span className="section-kicker">Accounts</span>
@@ -135,43 +177,7 @@ export default function Customers() {
         )}
       </div>
 
-      <div className="card card-spaced-top">
-        <div className="card-header">
-          <div>
-            <span className="section-kicker">Portfolio</span>
-            <h2>Customer insights</h2>
-          </div>
-        </div>
-        <div className="card-section-body">
-          <div className="stats-grid">
-            <div className="stat-card primary">
-              <h3>Total Customers</h3>
-              <div className="stat-value">{customers.length}</div>
-            </div>
-            <div className="stat-card success">
-              <h3>Avg Licenses/Customer</h3>
-              <div className="stat-value">
-                {customers.length > 0
-                  ? (totalLicenses / customers.length).toFixed(1)
-                  : '0'}
-              </div>
-            </div>
-            <div className="stat-card warning">
-              <h3>Most Licenses</h3>
-              <div className="stat-value">
-                {mostLicensedCustomer ? mostLicensedCustomer.licenses.length : '0'}
-              </div>
-              {mostLicensedCustomer && <span className="form-hint">{mostLicensedCustomer.id}</span>}
-            </div>
-            <div className="stat-card danger">
-              <h3>Need Attention</h3>
-              <div className="stat-value">
-                {customers.filter((c) => c.expiredLicenses > 0).length}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+     
     </div>
   )
 }

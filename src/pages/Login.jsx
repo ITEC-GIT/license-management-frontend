@@ -29,6 +29,20 @@ export default function Login() {
   return (
     <div className="login-container">
       <div className="login-grid" aria-hidden="true" />
+      <aside className="login-showcase" aria-hidden="true">
+        <div className="showcase-orbit">
+          <span className="orbit-core">LM</span>
+          <span className="orbit-ring orbit-ring-one" />
+          <span className="orbit-ring orbit-ring-two" />
+          <span className="orbit-chip chip-one">Keys</span>
+          <span className="orbit-chip chip-two">Limits</span>
+          <span className="orbit-chip chip-three">Audit</span>
+        </div>
+        <div className="showcase-copy">
+          <span>Enterprise license governance</span>
+          <strong>Issue. Bind. Monitor. Revoke.</strong>
+        </div>
+      </aside>
       <div className="login-box">
         <div className="login-sheen" aria-hidden="true" />
         <div className="login-brand">
@@ -42,12 +56,7 @@ export default function Login() {
         </div>
 
         {error && <div className="alert alert-danger">{error}</div>}
-
-        <div className="login-console-note">
-          Manage customer entitlements, hardware bindings, expiration policies, and license revocation from a controlled administrator workspace.
-        </div>
-
-        <form onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input

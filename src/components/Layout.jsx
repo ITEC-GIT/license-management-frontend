@@ -163,14 +163,6 @@ export default function Layout() {
             </li>
           </ul>
         </nav>
-
-        <div className="sidebar-footer">
-          <span className="sidebar-footer-dot" aria-hidden="true" />
-          <div>
-            <strong>License service online</strong>
-            <span>Secure administration</span>
-          </div>
-        </div>
       </aside>
 
       <main className="main-content">

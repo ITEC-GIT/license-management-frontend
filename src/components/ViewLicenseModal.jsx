@@ -30,6 +30,21 @@ export default function ViewLicenseModal({ license, onClose }) {
         </div>
 
         <div className="modal-body">
+          <div className="license-seal-card">
+            <div className="license-seal" aria-hidden="true">
+              <span>{license.license_type?.slice(0, 1)?.toUpperCase() || 'L'}</span>
+            </div>
+            <div>
+              <span className="section-kicker">Verification capsule</span>
+              <h3>{license.customer_id || 'Unassigned license'}</h3>
+              <p>
+                {license.hardware_id
+                  ? 'This entitlement is bound to a hardware fingerprint.'
+                  : 'This entitlement is currently floating and not hardware-bound.'}
+              </p>
+            </div>
+          </div>
+
           <div className="modal-detail-block">
             <h3 className="modal-section-title">Basic information</h3>
             <table className="kv-table">

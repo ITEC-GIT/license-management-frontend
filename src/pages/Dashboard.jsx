@@ -59,6 +59,10 @@ export default function Dashboard() {
     return <span className="badge badge-success">Active</span>
   }
 
+  const healthScore = stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0
+  const attentionCount = stats.expired + stats.revoked
+  const healthTone = healthScore >= 75 ? 'Strong' : healthScore >= 45 ? 'Watch' : 'Critical'
+
   if (loading) {
     return (
       <div className="loading">
@@ -98,33 +102,60 @@ export default function Dashboard() {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <div className="stats-grid">
-        <div className="stat-card primary">
-          <span className="stat-icon">TTL</span>
-          <h3>Total Licenses</h3>
-          <div className="stat-value">{stats.total}</div>
-        </div>
+      <div className="command-grid">
+        <section className="license-orb-card">
+          <div className="license-orb-copy">
+            <span className="section-kicker">Fleet health</span>
+            <h2>{healthTone} license posture</h2>
+            <p>
+              {attentionCount > 0
+                ? `${attentionCount} records need review across expiration or revocation events.`
+                : 'All tracked licenses are currently in a healthy operational state.'}
+            </p>
+          </div>
+          <div
+            className="license-orb"
+            style={{ '--health-score': `${healthScore * 3.6}deg` }}
+            aria-label={`License health score ${healthScore} percent`}
+          >
+            <span>{healthScore}%</span>
+            <small>healthy</small>
+          </div>
+        </section>
 
-        <div className="stat-card success">
-          <span className="stat-icon">ACT</span>
-          <h3>Active Licenses</h3>
-          <div className="stat-value">{stats.active}</div>
-        </div>
-
-        <div className="stat-card warning">
-          <span className="stat-icon">!</span>
-          <h3>Expired Licenses</h3>
-          <div className="stat-value">{stats.expired}</div>
-        </div>
-
-        <div className="stat-card danger">
-          <span className="stat-icon">X</span>
-          <h3>Revoked Licenses</h3>
-          <div className="stat-value">{stats.revoked}</div>
-        </div>
+        <section className="signal-board" aria-label="License signal summary">
+          <div className="signal-card signal-total">
+            <span className="signal-icon">01</span>
+            <div>
+              <span className="metric-label">Total keys</span>
+              <strong>{stats.total}</strong>
+            </div>
+          </div>
+          <div className="signal-card signal-active">
+            <span className="signal-icon">02</span>
+            <div>
+              <span className="metric-label">Active</span>
+              <strong>{stats.active}</strong>
+            </div>
+          </div>
+          <div className="signal-card signal-warning">
+            <span className="signal-icon">03</span>
+            <div>
+              <span className="metric-label">Expired</span>
+              <strong>{stats.expired}</strong>
+            </div>
+          </div>
+          <div className="signal-card signal-danger">
+            <span className="signal-icon">04</span>
+            <div>
+              <span className="metric-label">Revoked</span>
+              <strong>{stats.revoked}</strong>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <div className="card">
+      <div className="card activity-card">
         <div className="card-header">
           <div>
             <span className="section-kicker">Latest activity</span>
@@ -150,10 +181,18 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentLicenses.map((license) => (
+                {recentLicenses.map((license, index) => (
                   <tr key={license.id}>
-                    <td data-label="ID">#{license.id}</td>
-                    <td data-label="Customer">{license.customer_id || 'N/A'}</td>
+                    <td data-label="ID">
+                      <span className="activity-index">{String(index + 1).padStart(2, '0')}</span>
+                      #{license.id}
+                    </td>
+                    <td data-label="Customer">
+                      <div className="record-title">
+                        <strong>{license.customer_id || 'Unassigned'}</strong>
+                        <span>Entitlement record</span>
+                      </div>
+                    </td>
                     <td data-label="Type">
                       <span className="badge badge-info">{license.license_type}</span>
                     </td>

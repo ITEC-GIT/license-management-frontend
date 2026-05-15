@@ -20,21 +20,25 @@ const licenseTypes = [
     value: 'demo',
     label: 'Demo',
     description: 'Short-lived access for product walkthroughs.',
+    glyph: 'D',
   },
   {
     value: 'full',
     label: 'Full',
     description: 'Standard production license for a single customer.',
+    glyph: 'F',
   },
   {
     value: 'enterprise',
     label: 'Enterprise',
     description: 'Expanded deployment with higher capacity needs.',
+    glyph: 'E',
   },
   {
     value: 'trial',
     label: 'Trial',
     description: 'Time-boxed evaluation before purchase.',
+    glyph: 'T',
   },
 ]
 
@@ -182,6 +186,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                           onChange={handleChange}
                           required
                         />
+                        <span className="license-type-glyph" aria-hidden="true">{type.glyph}</span>
                         <span className="license-type-card-title">{type.label}</span>
                         <span className="license-type-card-copy">{type.description}</span>
                       </label>
