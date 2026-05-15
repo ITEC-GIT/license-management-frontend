@@ -1,16 +1,29 @@
+import { useState } from 'react'
+
 export default function ViewLicenseModal({ license, onClose }) {
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-    alert('Copied to clipboard!')
+  const [copied, setCopied] = useState(false)
+
+  const copyToClipboard = async (text) => {
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
   }
 
-  const licenseData = JSON.parse(license.license_key)
+  let licenseData = null
+  try {
+    licenseData = JSON.parse(license.license_key)
+  } catch (error) {
+    licenseData = null
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>License details · #{license.id}</h2>
+          <div>
+            <span className="modal-eyebrow">License record</span>
+            <h2>License details · #{license.id}</h2>
+          </div>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
             ×
           </button>
@@ -87,10 +100,15 @@ export default function ViewLicenseModal({ license, onClose }) {
                 className="btn-copy-json"
                 onClick={() => copyToClipboard(license.license_key)}
               >
-                Copy
+                {copied ? 'Copied' : 'Copy'}
               </button>
-              <pre>{JSON.stringify(licenseData, null, 2)}</pre>
+              <pre>
+                {licenseData
+                  ? JSON.stringify(licenseData, null, 2)
+                  : license.license_key}
+              </pre>
             </div>
+            {copied && <p className="copy-feedback">License payload copied.</p>}
           </div>
         </div>
 

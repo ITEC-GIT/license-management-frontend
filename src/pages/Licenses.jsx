@@ -9,17 +9,20 @@ export default function Licenses() {
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [viewLicense, setViewLicense] = useState(null)
   const [filter, setFilter] = useState('all') // all, active, expired, revoked
+  const [error, setError] = useState('')
 
   useEffect(() => {
     loadLicenses()
   }, [])
 
   const loadLicenses = async () => {
+    setError('')
     try {
       const response = await getLicenses()
       setLicenses(response.data)
     } catch (error) {
       console.error('Failed to load licenses:', error)
+      setError('Unable to load licenses. Please refresh or try again later.')
     } finally {
       setLoading(false)
     }
@@ -44,7 +47,7 @@ export default function Licenses() {
       await revokeLicense(id, 'Revoked by admin')
       await loadLicenses()
     } catch (error) {
-      alert('Failed to revoke license')
+      setError('Failed to revoke license. Please try again.')
     }
   }
 
@@ -61,26 +64,42 @@ export default function Licenses() {
     URL.revokeObjectURL(url)
   }
 
+  const getLicenseStatus = (license) => {
+    const now = new Date()
+    if (license.revoked_at) return 'revoked'
+    if (license.expires_at && new Date(license.expires_at) <= now) return 'expired'
+    if (license.is_active) return 'active'
+    return 'inactive'
+  }
+
+  const statusCounts = licenses.reduce(
+    (acc, license) => {
+      const status = getLicenseStatus(license)
+      acc[status] = (acc[status] || 0) + 1
+      return acc
+    },
+    { active: 0, expired: 0, revoked: 0, inactive: 0 }
+  )
+
   const filteredLicenses = licenses.filter((license) => {
     if (filter === 'all') return true
-    const now = new Date()
-    if (filter === 'active') {
-      return (
-        license.is_active &&
-        (!license.expires_at || new Date(license.expires_at) > now) &&
-        !license.revoked_at
-      )
-    }
-    if (filter === 'expired') {
-      return (
-        license.expires_at && new Date(license.expires_at) <= now && !license.revoked_at
-      )
-    }
-    if (filter === 'revoked') {
-      return license.revoked_at
-    }
-    return true
+    return getLicenseStatus(license) === filter
   })
+
+  const getStatusBadge = (license) => {
+    const status = getLicenseStatus(license)
+    if (status === 'revoked') return <span className="badge badge-danger">Revoked</span>
+    if (status === 'expired') return <span className="badge badge-warning">Expired</span>
+    if (status === 'active') return <span className="badge badge-success">Active</span>
+    return <span className="badge badge-info">Inactive</span>
+  }
+
+  const emptyMessage = () => {
+    if (licenses.length === 0) {
+      return 'No licenses exist yet. Generate the first license to begin tracking customer access.'
+    }
+    return `No ${filter} licenses match the current filter.`
+  }
 
   if (loading) {
     return (
@@ -93,17 +112,44 @@ export default function Licenses() {
 
   return (
     <div>
-      <header className="page-header">
-        <h1 className="page-title">Licenses</h1>
-        <p className="page-subtitle">Create, filter, and manage license keys</p>
+      <header className="page-header page-header-actions">
+        <div>
+          <span className="eyebrow">License registry</span>
+          <h1 className="page-title">Licenses</h1>
+          <p className="page-subtitle">Create, filter, and manage signed license keys across every customer environment.</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowGenerateModal(true)}>
+          Generate license
+        </button>
       </header>
+
+      {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card">
         <div className="card-header">
-          <h2>All licenses</h2>
-          <button className="btn btn-primary" onClick={() => setShowGenerateModal(true)}>
-            Generate license
-          </button>
+          <div>
+            <span className="section-kicker">Registry</span>
+            <h2>All licenses</h2>
+          </div>
+        </div>
+
+        <div className="summary-strip" aria-label="License summary">
+          <div className="summary-item">
+            <span className="metric-label">Total</span>
+            <strong>{licenses.length}</strong>
+          </div>
+          <div className="summary-item">
+            <span className="metric-label">Active</span>
+            <strong>{statusCounts.active}</strong>
+          </div>
+          <div className="summary-item">
+            <span className="metric-label">Expired</span>
+            <strong>{statusCounts.expired}</strong>
+          </div>
+          <div className="summary-item">
+            <span className="metric-label">Revoked</span>
+            <strong>{statusCounts.revoked}</strong>
+          </div>
         </div>
 
         <div className="filter-toolbar">
@@ -119,30 +165,30 @@ export default function Licenses() {
             className={`btn btn-sm ${filter === 'active' ? 'btn-success' : ''}`}
             onClick={() => setFilter('active')}
           >
-            Active
+            Active ({statusCounts.active})
           </button>
           <button
             type="button"
             className={`btn btn-sm ${filter === 'expired' ? 'btn-warning' : ''}`}
             onClick={() => setFilter('expired')}
           >
-            Expired
+            Expired ({statusCounts.expired})
           </button>
           <button
             type="button"
             className={`btn btn-sm ${filter === 'revoked' ? 'btn-danger' : ''}`}
             onClick={() => setFilter('revoked')}
           >
-            Revoked
+            Revoked ({statusCounts.revoked})
           </button>
         </div>
 
         {filteredLicenses.length === 0 ? (
           <div className="empty-state">
-            <p>No licenses found</p>
+            <p>{emptyMessage()}</p>
           </div>
         ) : (
-          <div className="table-container">
+          <div className="table-container responsive-table">
             <table>
               <thead>
                 <tr>
@@ -159,37 +205,33 @@ export default function Licenses() {
               <tbody>
                 {filteredLicenses.map((license) => (
                   <tr key={license.id}>
-                    <td>#{license.id}</td>
-                    <td>{license.customer_id || 'N/A'}</td>
-                    <td>
+                    <td data-label="ID">#{license.id}</td>
+                    <td data-label="Customer">
+                      <div className="record-title">
+                        <strong>{license.customer_id || 'Unassigned'}</strong>
+                        <span>License #{license.id}</span>
+                      </div>
+                    </td>
+                    <td data-label="Type">
                       <span className="badge badge-info">{license.license_type}</span>
                     </td>
-                    <td>{new Date(license.issued_at).toLocaleDateString()}</td>
-                    <td>
+                    <td data-label="Issued">{new Date(license.issued_at).toLocaleDateString()}</td>
+                    <td data-label="Expires">
                       {license.expires_at
                         ? new Date(license.expires_at).toLocaleDateString()
                         : 'Never'}
                     </td>
-                    <td className="cell-mono">
+                    <td className="cell-mono" data-label="Hardware ID">
                       {license.hardware_id ? (
                         <span title={license.hardware_id}>
-                          {license.hardware_id.slice(0, 8)}…
+                          {license.hardware_id.slice(0, 8)}...
                         </span>
                       ) : (
                         'N/A'
                       )}
                     </td>
-                    <td>
-                      {license.revoked_at ? (
-                        <span className="badge badge-danger">Revoked</span>
-                      ) : license.expires_at &&
-                        new Date(license.expires_at) <= new Date() ? (
-                        <span className="badge badge-warning">Expired</span>
-                      ) : (
-                        <span className="badge badge-success">Active</span>
-                      )}
-                    </td>
-                    <td className="td-actions">
+                    <td data-label="Status">{getStatusBadge(license)}</td>
+                    <td className="td-actions" data-label="Actions">
                       <button
                         type="button"
                         className="btn btn-sm btn-primary"

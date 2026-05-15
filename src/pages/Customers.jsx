@@ -4,12 +4,14 @@ import { getLicenses } from '../services/api'
 export default function Customers() {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     loadCustomers()
   }, [])
 
   const loadCustomers = async () => {
+    setError('')
     try {
       const response = await getLicenses()
       const licenses = response.data
@@ -39,13 +41,27 @@ export default function Customers() {
         }
       })
 
-      setCustomers(Object.values(customerMap))
+      const sortedCustomers = Object.values(customerMap).sort((a, b) => {
+        const riskDelta = b.expiredLicenses - a.expiredLicenses
+        if (riskDelta !== 0) return riskDelta
+        return b.licenses.length - a.licenses.length
+      })
+
+      setCustomers(sortedCustomers)
     } catch (error) {
       console.error('Failed to load customers:', error)
+      setError('Unable to load customer insights. Please try again.')
     } finally {
       setLoading(false)
     }
   }
+
+  const totalLicenses = customers.reduce((acc, customer) => acc + customer.licenses.length, 0)
+  const mostLicensedCustomer = customers.length
+    ? customers.reduce((top, customer) =>
+        customer.licenses.length > top.licenses.length ? customer : top
+      )
+    : null
 
   if (loading) {
     return (
@@ -59,21 +75,27 @@ export default function Customers() {
   return (
     <div>
       <header className="page-header">
+        <span className="eyebrow">Customer intelligence</span>
         <h1 className="page-title">Customers</h1>
-        <p className="page-subtitle">Derived from license records</p>
+        <p className="page-subtitle">Understand customer entitlement coverage, license concentration, and accounts that need attention.</p>
       </header>
+
+      {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card">
         <div className="card-header">
-          <h2>Customer list</h2>
+          <div>
+            <span className="section-kicker">Accounts</span>
+            <h2>Customer list</h2>
+          </div>
         </div>
 
         {customers.length === 0 ? (
           <div className="empty-state">
-            <p>No customers found</p>
+            <p>No customers found. Customer records are derived from generated licenses.</p>
           </div>
         ) : (
-          <div className="table-container">
+          <div className="table-container responsive-table">
             <table>
               <thead>
                 <tr>
@@ -87,17 +109,20 @@ export default function Customers() {
               <tbody>
                 {customers.map((customer) => (
                   <tr key={customer.id}>
-                    <td>
-                      <strong>{customer.id}</strong>
+                    <td data-label="Customer ID">
+                      <div className="record-title">
+                        <strong>{customer.id}</strong>
+                        <span>{customer.expiredLicenses > 0 ? 'Needs review' : 'Healthy account'}</span>
+                      </div>
                     </td>
-                    <td>{customer.licenses.length}</td>
-                    <td>
+                    <td data-label="Total Licenses">{customer.licenses.length}</td>
+                    <td data-label="Active">
                       <span className="badge badge-success">{customer.activeLicenses}</span>
                     </td>
-                    <td>
+                    <td data-label="Expired">
                       <span className="badge badge-warning">{customer.expiredLicenses}</span>
                     </td>
-                    <td>
+                    <td data-label="Latest License">
                       {new Date(
                         Math.max(...customer.licenses.map((l) => new Date(l.issued_at)))
                       ).toLocaleDateString()}
@@ -112,7 +137,10 @@ export default function Customers() {
 
       <div className="card card-spaced-top">
         <div className="card-header">
-          <h2>Customer insights</h2>
+          <div>
+            <span className="section-kicker">Portfolio</span>
+            <h2>Customer insights</h2>
+          </div>
         </div>
         <div className="card-section-body">
           <div className="stats-grid">
@@ -124,20 +152,16 @@ export default function Customers() {
               <h3>Avg Licenses/Customer</h3>
               <div className="stat-value">
                 {customers.length > 0
-                  ? (
-                      customers.reduce((acc, c) => acc + c.licenses.length, 0) /
-                      customers.length
-                    ).toFixed(1)
+                  ? (totalLicenses / customers.length).toFixed(1)
                   : '0'}
               </div>
             </div>
             <div className="stat-card warning">
               <h3>Most Licenses</h3>
               <div className="stat-value">
-                {customers.length > 0
-                  ? Math.max(...customers.map((c) => c.licenses.length))
-                  : '0'}
+                {mostLicensedCustomer ? mostLicensedCustomer.licenses.length : '0'}
               </div>
+              {mostLicensedCustomer && <span className="form-hint">{mostLicensedCustomer.id}</span>}
             </div>
             <div className="stat-card danger">
               <h3>Need Attention</h3>

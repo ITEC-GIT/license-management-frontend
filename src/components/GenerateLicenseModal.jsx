@@ -53,6 +53,11 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
   const isFirstStep = currentStep === 0
   const isLastStep = currentStep === steps.length - 1
+  const isDirty =
+    formData.license_type !== 'full' ||
+    ['customer_id', 'expires_days', 'max_admins', 'max_computers', 'hardware_id'].some(
+      field => Boolean(formData[field])
+    )
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -72,6 +77,12 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   const handlePrevious = () => {
     setError('')
     setCurrentStep(prev => Math.max(prev - 1, 0))
+  }
+
+  const requestClose = () => {
+    if (loading) return
+    if (isDirty && !confirm('Discard this license draft?')) return
+    onClose()
   }
 
   const handleSubmit = async (e) => {
@@ -106,14 +117,22 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   ]
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={requestClose}>
       <div className="modal wizard-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
+            <span className="modal-eyebrow">License wizard</span>
             <h2>Generate New License</h2>
             <p className="modal-header-copy">{steps[currentStep].description}</p>
           </div>
-          <button className="modal-close" onClick={onClose}>&times;</button>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={requestClose}
+            aria-label="Close generate license dialog"
+          >
+            &times;
+          </button>
         </div>
 
         <form className="modal-form" onSubmit={handleSubmit}>
@@ -273,7 +292,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
             <button
               type="button"
               className="btn btn-outline"
-              onClick={isFirstStep ? onClose : handlePrevious}
+              onClick={isFirstStep ? requestClose : handlePrevious}
               disabled={loading}
             >
               {isFirstStep ? 'Cancel' : 'Back'}

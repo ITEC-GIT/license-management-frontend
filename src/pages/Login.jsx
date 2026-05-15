@@ -36,17 +36,22 @@ export default function Login() {
             <span className="login-logo-inner">LM</span>
           </span>
           <div>
-            <h1>License Manager</h1>
-            <p className="login-tagline">Sign in to manage your licenses</p>
+            <h1>License Manager Console</h1>
+            <p className="login-tagline">Secure access for license operations</p>
           </div>
         </div>
 
         {error && <div className="alert alert-danger">{error}</div>}
 
+        <div className="login-console-note">
+          Manage customer entitlements, hardware bindings, expiration policies, and license revocation from a controlled administrator workspace.
+        </div>
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Username</label>
+            <label htmlFor="username">Username</label>
             <input
+              id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -56,8 +61,9 @@ export default function Login() {
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

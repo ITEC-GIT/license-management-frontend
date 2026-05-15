@@ -102,6 +102,7 @@ function NavIconLogout() {
 export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const displayName = user?.full_name || user?.username || 'Administrator'
 
   const handleLogout = (e) => {
     e.preventDefault()
@@ -120,16 +121,16 @@ export default function Layout() {
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <span className="sidebar-logo" aria-hidden="true">
-              <span className="sidebar-logo-inner">LC</span>
+              <span className="sidebar-logo-inner">LM</span>
             </span>
             <div>
-              <h1>License Console</h1>
-              <span className="sidebar-product-tag">Management System</span>
+              <h1>License Manager</h1>
+              <span className="sidebar-product-tag">Enterprise Console</span>
             </div>
           </div>
           <p className="sidebar-meta">
             <span className="sidebar-user-label">Signed in as</span>
-            <span className="sidebar-user-name">{user?.full_name || user?.username}</span>
+            <span className="sidebar-user-name">{displayName}</span>
           </p>
         </div>
 
@@ -162,10 +163,30 @@ export default function Layout() {
             </li>
           </ul>
         </nav>
+
+        <div className="sidebar-footer">
+          <span className="sidebar-footer-dot" aria-hidden="true" />
+          <div>
+            <strong>License service online</strong>
+            <span>Secure administration</span>
+          </div>
+        </div>
       </aside>
 
       <main className="main-content">
-        <Outlet />
+        <div className="topbar" role="status" aria-label="Console status">
+          <div>
+            <span className="topbar-kicker">Operations workspace</span>
+            <strong>License lifecycle control</strong>
+          </div>
+          <span className="topbar-status">
+            <span className="status-dot" aria-hidden="true" />
+            Active session
+          </span>
+        </div>
+        <div className="main-content-inner fade-in-up">
+          <Outlet />
+        </div>
       </main>
     </div>
   )
