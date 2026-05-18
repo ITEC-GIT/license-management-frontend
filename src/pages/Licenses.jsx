@@ -115,7 +115,6 @@ export default function Licenses() {
       <header className="page-header page-header-actions">
         <div>
           <h1 className="page-title">Licenses</h1>
-          <p className="page-subtitle">Create, filter, and manage signed license keys across every customer environment.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowGenerateModal(true)}>
           Generate license

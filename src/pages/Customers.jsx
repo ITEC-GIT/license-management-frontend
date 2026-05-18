@@ -78,7 +78,6 @@ export default function Customers() {
     <div>
       <header className="page-header">
         <h1 className="page-title">Customers</h1>
-        <p className="page-subtitle">Understand customer entitlement coverage, license concentration, and accounts that need attention.</p>
       </header>
 
       {error && <div className="alert alert-danger">{error}</div>}

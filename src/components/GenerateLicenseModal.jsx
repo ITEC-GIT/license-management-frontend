@@ -2,16 +2,13 @@ import { useState } from 'react'
 
 const steps = [
   {
-    title: 'License',
-    description: 'Choose the license edition and attach an optional customer reference.',
+    title: 'License'
   },
   {
-    title: 'Limits',
-    description: 'Set expiration and usage limits, or leave fields blank for unrestricted values.',
+    title: 'Limits'
   },
   {
-    title: 'Review',
-    description: 'Confirm the license payload before generating it.',
+    title: 'Review'
   },
 ]
 
@@ -201,7 +198,6 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                       onChange={handleChange}
                       placeholder="e.g., ACME-Corp-2024"
                     />
-                    <small className="form-hint">Use a stable customer reference so the generated license is easy to trace later.</small>
                   </div>
                 </>
               )}
