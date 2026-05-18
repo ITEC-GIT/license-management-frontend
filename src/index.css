@@ -3111,10 +3111,14 @@ body::before {
 }
 
 .login-container {
+  min-height: 0;
+  height: 100vh;
+  height: 100dvh;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 460px);
   gap: clamp(1.5rem, 6vw, 5rem);
-  padding: clamp(1.5rem, 5vw, 4rem);
+  align-items: center;
+  padding: clamp(1rem, 3vh, 2.5rem) clamp(1rem, 5vw, 4rem);
 }
 
 .login-showcase {
@@ -3123,13 +3127,13 @@ body::before {
   display: grid;
   align-content: center;
   justify-items: center;
-  min-height: 560px;
+  min-height: 0;
   color: #e0f2fe;
 }
 
 .showcase-orbit {
   position: relative;
-  width: min(520px, 80vw);
+  width: min(480px, 58vh, 80vw);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -3212,7 +3216,7 @@ body::before {
   display: block;
   margin-top: 0.5rem;
   color: #ffffff;
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: clamp(1.8rem, 4.5vw, 3.4rem);
   line-height: 0.98;
   letter-spacing: -0.075em;
 }
@@ -3389,11 +3393,11 @@ body::before {
   }
 
   .login-showcase {
-    min-height: 320px;
+    min-height: 0;
   }
 
   .showcase-orbit {
-    width: min(360px, 88vw);
+    width: min(300px, 38vh, 88vw);
   }
 }
 
