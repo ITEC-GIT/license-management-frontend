@@ -122,7 +122,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
   return (
     <div className="modal-overlay" onClick={requestClose}>
-      <div className="modal wizard-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal wizard-modal generate-license-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
             <h2>Generate New License</h2>
