@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { getLicenses } from '../services/api'
+import { createCustomer, getCustomers, getLicenses } from '../services/api'
 
 export default function Customers() {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -13,16 +14,35 @@ export default function Customers() {
   const loadCustomers = async () => {
     setError('')
     try {
-      const response = await getLicenses()
-      const licenses = response.data
+      const [customersResponse, licensesResponse] = await Promise.all([
+        getCustomers(),
+        getLicenses(),
+      ])
+      const customerList = Array.isArray(customersResponse.data)
+        ? customersResponse.data
+        : customersResponse.data?.customers || customersResponse.data?.items || []
+      const licenses = licensesResponse.data
 
-      // Group by customer_id
       const customerMap = {}
+      customerList.forEach((customer) => {
+        const customerId = getCustomerId(customer)
+        if (!customerId) return
+
+        customerMap[customerId] = {
+          id: customerId,
+          name: getCustomerName(customer),
+          licenses: [],
+          activeLicenses: 0,
+          expiredLicenses: 0
+        }
+      })
+
       licenses.forEach((license) => {
         const customerId = license.customer_id || 'Unknown'
         if (!customerMap[customerId]) {
           customerMap[customerId] = {
             id: customerId,
+            name: '',
             licenses: [],
             activeLicenses: 0,
             expiredLicenses: 0
@@ -56,6 +76,16 @@ export default function Customers() {
     }
   }
 
+  const handleCreateCustomer = async (data) => {
+    try {
+      await createCustomer(data)
+      await loadCustomers()
+      setShowCreateModal(false)
+    } catch (error) {
+      throw error
+    }
+  }
+
   const totalLicenses = customers.reduce((acc, customer) => acc + customer.licenses.length, 0)
   const mostLicensedCustomer = customers.length
     ? customers.reduce((top, customer) =>
@@ -63,7 +93,6 @@ export default function Customers() {
       )
     : null
   const attentionCustomers = customers.filter((customer) => customer.expiredLicenses > 0).length
-  const topCustomers = customers.slice(0, 3)
 
   if (loading) {
     return (
@@ -76,8 +105,17 @@ export default function Customers() {
 
   return (
     <div>
-      <header className="page-header">
-        <h1 className="page-title">Customers</h1>
+      <header className="page-header page-header-actions">
+        <div>
+          <h1 className="page-title">Customers</h1>
+        </div>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => setShowCreateModal(true)}
+        >
+          New customer
+        </button>
       </header>
 
       {error && <div className="alert alert-danger">{error}</div>}
@@ -112,7 +150,7 @@ export default function Customers() {
             <div className="stat-card danger">
               <h3>Need Attention</h3>
               <div className="stat-value">
-                {customers.filter((c) => c.expiredLicenses > 0).length}
+                {attentionCustomers}
               </div>
             </div>
           </div>
@@ -129,7 +167,7 @@ export default function Customers() {
 
         {customers.length === 0 ? (
           <div className="empty-state">
-            <p>No customers found. Customer records are derived from generated licenses.</p>
+            <p>No customers found. Create your first customer to begin tracking accounts.</p>
           </div>
         ) : (
           <div className="table-container responsive-table">
@@ -149,7 +187,13 @@ export default function Customers() {
                     <td data-label="Customer ID">
                       <div className="record-title">
                         <strong>{customer.id}</strong>
-                        <span>{customer.expiredLicenses > 0 ? 'Needs review' : 'Healthy account'}</span>
+                        <span>
+                          {customer.name
+                            ? customer.name
+                            : customer.expiredLicenses > 0
+                              ? 'Needs review'
+                              : 'Healthy account'}
+                        </span>
                       </div>
                     </td>
                     <td data-label="Total Licenses">{customer.licenses.length}</td>
@@ -160,9 +204,9 @@ export default function Customers() {
                       <span className="badge badge-warning">{customer.expiredLicenses}</span>
                     </td>
                     <td data-label="Latest License">
-                      {new Date(
-                        Math.max(...customer.licenses.map((l) => new Date(l.issued_at)))
-                      ).toLocaleDateString()}
+                      {customer.licenses.length > 0
+                        ? getLatestLicenseDate(customer.licenses)
+                        : 'No licenses yet'}
                     </td>
                   </tr>
                 ))}
@@ -172,7 +216,133 @@ export default function Customers() {
         )}
       </div>
 
-     
+      {showCreateModal && (
+        <CreateCustomerModal
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreateCustomer}
+        />
+      )}
     </div>
   )
+}
+
+function CreateCustomerModal({ onClose, onCreate }) {
+  const [formData, setFormData] = useState({
+    customer_id: '',
+    name: '',
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+
+    if (!formData.customer_id.trim()) {
+      setError('Customer ID is required')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      await onCreate({
+        customer_id: formData.customer_id.trim(),
+        name: formData.name.trim() || undefined,
+      })
+    } catch (error) {
+      setError(error.response?.data?.detail || 'Failed to create customer')
+      setLoading(false)
+    }
+  }
+
+  const requestClose = () => {
+    if (loading) return
+    onClose()
+  }
+
+  return (
+    <div className="modal-overlay" onClick={requestClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <h2>New Customer</h2>
+            <p className="modal-header-copy">Create a customer record for future licenses.</p>
+          </div>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={requestClose}
+            aria-label="Close new customer dialog"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form className="modal-form" onSubmit={handleSubmit}>
+          <div className="modal-body">
+            {error && <div className="alert alert-danger">{error}</div>}
+
+            <div className="form-group">
+              <label>Customer ID</label>
+              <input
+                type="text"
+                name="customer_id"
+                value={formData.customer_id}
+                onChange={handleChange}
+                placeholder="customer-001"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Name</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Customer or company name"
+              />
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={requestClose}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Creating...' : 'Create customer'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function getCustomerId(customer) {
+  if (typeof customer === 'string') return customer
+  return String(customer.customer_id ?? customer.id ?? customer.name ?? '')
+}
+
+function getCustomerName(customer) {
+  if (typeof customer === 'string') return ''
+  return customer.name || customer.company_name || customer.full_name || ''
+}
+
+function getLatestLicenseDate(licenses) {
+  return new Date(
+    Math.max(...licenses.map((license) => new Date(license.issued_at)))
+  ).toLocaleDateString()
 }

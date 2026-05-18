@@ -1536,7 +1536,7 @@ table tbody tr:last-child td {
 
 .wizard-steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
   gap: 0.55rem;
   margin-bottom: 1.15rem;
 }

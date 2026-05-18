@@ -6,6 +6,9 @@ const steps = [
     title: 'License'
   },
   {
+    title: 'Customer'
+  },
+  {
     title: 'Limits'
   },
   {
@@ -348,6 +351,16 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                     </div>
                   )}
 
+                </>
+              )}
+
+              {currentStep === 1 && (
+                <>
+                  <div className="wizard-section-heading">
+                    <span>Step 2 of {steps.length}</span>
+                    <h3>Select the customer</h3>
+                  </div>
+
                   <div className="form-group wizard-field">
                     <label>Customer</label>
                     <select
@@ -377,10 +390,10 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                 </>
               )}
 
-              {currentStep === 1 && (
+              {currentStep === 2 && (
                 <>
                   <div className="wizard-section-heading">
-                    <span>Step 2 of {steps.length}</span>
+                    <span>Step 3 of {steps.length}</span>
                     <h3>Define access boundaries</h3>
                   </div>
 
@@ -430,16 +443,15 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                         onChange={handleChange}
                         placeholder="Leave empty for no hardware binding"
                       />
-                      <small className="form-hint">Binds this license to a specific device fingerprint.</small>
                     </div>
                   </div>
                 </>
               )}
 
-              {currentStep === 2 && (
+              {currentStep === 3 && (
                 <>
                   <div className="wizard-section-heading">
-                    <span>Step 3 of {steps.length}</span>
+                    <span>Step 4 of {steps.length}</span>
                     <h3>Review license details</h3>
                   </div>
 
