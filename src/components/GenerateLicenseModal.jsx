@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getCustomers } from '../services/api'
 
 const steps = [
   {
@@ -51,6 +52,43 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [currentStep, setCurrentStep] = useState(0)
+  const [customers, setCustomers] = useState([])
+  const [customersLoading, setCustomersLoading] = useState(true)
+  const [customersError, setCustomersError] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadCustomers = async () => {
+      setCustomersError('')
+
+      try {
+        const response = await getCustomers()
+        const customerList = Array.isArray(response.data)
+          ? response.data
+          : response.data?.customers || response.data?.items || []
+
+        if (isMounted) {
+          setCustomers(customerList)
+        }
+      } catch (error) {
+        console.error('Failed to load customers:', error)
+        if (isMounted) {
+          setCustomersError('Unable to load customers. Please try again later.')
+        }
+      } finally {
+        if (isMounted) {
+          setCustomersLoading(false)
+        }
+      }
+    }
+
+    loadCustomers()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const isFirstStep = currentStep === 0
   const isLastStep = currentStep === steps.length - 1
@@ -108,9 +146,31 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     }
   }
 
+  const getCustomerValue = (customer) => {
+    if (typeof customer === 'string') return customer
+    return String(customer.customer_id ?? customer.id ?? customer.name ?? '')
+  }
+
+  const getCustomerLabel = (customer) => {
+    if (typeof customer === 'string') return customer
+
+    const name = customer.name || customer.company_name || customer.full_name
+    const identifier = customer.customer_id || customer.id
+
+    if (name && identifier) return `${name} (${identifier})`
+    return name || identifier || 'Unnamed customer'
+  }
+
+  const selectedCustomer = customers.find(
+    customer => getCustomerValue(customer) === formData.customer_id
+  )
+  const selectedCustomerLabel = selectedCustomer
+    ? getCustomerLabel(selectedCustomer)
+    : formData.customer_id || 'Unassigned'
+
   const reviewItems = [
     ['License type', licenseTypes.find(type => type.value === formData.license_type)?.label || formData.license_type],
-    ['Customer ID', formData.customer_id || 'Unassigned'],
+    ['Customer', selectedCustomerLabel],
     ['Expiration', formData.expires_days ? `${formData.expires_days} days` : 'No expiration'],
     ['Max admins', formData.max_admins || 'Unlimited'],
     ['Max computers', formData.max_computers || 'Unlimited'],
@@ -190,14 +250,30 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                   </div>
 
                   <div className="form-group wizard-field">
-                    <label>Customer ID</label>
-                    <input
-                      type="text"
+                    <label>Customer</label>
+                    <select
                       name="customer_id"
                       value={formData.customer_id}
                       onChange={handleChange}
-                      placeholder="e.g., ACME-Corp-2024"
-                    />
+                      disabled={customersLoading || customers.length === 0}
+                    >
+                      <option value="">
+                        {customersLoading ? 'Loading customers...' : 'Select a customer'}
+                      </option>
+                      {customers.map((customer, index) => {
+                        const value = getCustomerValue(customer)
+
+                        return (
+                          <option key={`${value}-${index}`} value={value}>
+                            {getCustomerLabel(customer)}
+                          </option>
+                        )
+                      })}
+                    </select>
+                    {customersError && <small className="form-hint">{customersError}</small>}
+                    {!customersLoading && !customersError && customers.length === 0 && (
+                      <small className="form-hint">No customers are available yet.</small>
+                    )}
                   </div>
                 </>
               )}
@@ -271,7 +347,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                   <div className="wizard-review-card">
                     <div className="wizard-review-header">
                       <span className="wizard-review-badge">{reviewItems[0][1]}</span>
-                      <strong>{formData.customer_id || 'New customer license'}</strong>
+                      <strong>{selectedCustomerLabel}</strong>
                     </div>
 
                     <dl className="wizard-review-list">
