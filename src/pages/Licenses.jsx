@@ -112,18 +112,6 @@ export default function Licenses() {
 
   return (
     <div className="licenses-page">
-      <header className="page-header page-header-actions licenses-page-header">
-        <div>
-          <h1 className="page-title">Licenses</h1>
-        </div>
-        <button
-          type="button"
-          className="btn btn-primary license-generate-action"
-          onClick={() => setShowGenerateModal(true)}
-        >
-          Generate license
-        </button>
-      </header>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
@@ -151,31 +139,6 @@ export default function Licenses() {
       </section>
 
       <div className="card registry-card">
-        <div className="card-header">
-          <div>
-            <h2>All licenses</h2>
-          </div>
-        </div>
-
-        <div className="summary-strip" aria-label="License summary">
-          <div className="summary-item">
-            <span className="metric-label">Total</span>
-            <strong>{licenses.length}</strong>
-          </div>
-          <div className="summary-item">
-            <span className="metric-label">Active</span>
-            <strong>{statusCounts.active}</strong>
-          </div>
-          <div className="summary-item">
-            <span className="metric-label">Expired</span>
-            <strong>{statusCounts.expired}</strong>
-          </div>
-          <div className="summary-item">
-            <span className="metric-label">Revoked</span>
-            <strong>{statusCounts.revoked}</strong>
-          </div>
-        </div>
-
         <div className="filter-toolbar">
           <button
             type="button"
@@ -205,6 +168,14 @@ export default function Licenses() {
           >
             Revoked ({statusCounts.revoked})
           </button>
+
+          <button
+          type="button"
+          className="btn btn-primary license-generate-action"
+          onClick={() => setShowGenerateModal(true)}
+        >
+          Generate license
+        </button>
         </div>
 
         {filteredLicenses.length === 0 ? (
