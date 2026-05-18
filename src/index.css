@@ -3480,6 +3480,32 @@ body {
   overflow-wrap: anywhere;
 }
 
+.view-license-modal {
+  width: min(680px, calc(100vw - 2rem));
+}
+
+.view-license-modal .modal-header > div {
+  min-width: 0;
+}
+
+.view-license-modal .modal-header h2,
+.view-license-modal .license-seal-card h3,
+.view-license-modal .kv-table td,
+.view-license-modal .license-json-block,
+.view-license-modal .license-json-block pre {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.view-license-modal .kv-table {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.view-license-modal .license-json-block {
+  max-width: 100%;
+}
+
 @media (max-width: 1100px) {
   .main-content-inner,
   .topbar {
@@ -3634,6 +3660,60 @@ body {
   .modal-footer {
     padding-left: 0.85rem;
     padding-right: 0.85rem;
+  }
+
+  .view-license-modal {
+    width: 100%;
+  }
+
+  .view-license-modal .modal-header {
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+
+  .view-license-modal .modal-header h2 {
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .view-license-modal .license-seal {
+    width: 64px;
+    border-radius: 20px;
+  }
+
+  .view-license-modal .license-seal::after {
+    border-radius: 16px;
+  }
+
+  .view-license-modal .kv-table,
+  .view-license-modal .kv-table tbody,
+  .view-license-modal .kv-table tr,
+  .view-license-modal .kv-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .view-license-modal .kv-table td {
+    padding: 0.25rem 0;
+    border-bottom: 0;
+  }
+
+  .view-license-modal .kv-table tr {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .view-license-modal .kv-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .view-license-modal .kv-table td:first-child {
+    width: 100%;
+    padding-right: 0;
+  }
+
+  .view-license-modal .license-json-block {
+    padding: 0.7rem;
   }
 
   .wizard-step {
