@@ -105,19 +105,6 @@ export default function Customers() {
 
   return (
     <div>
-      <header className="page-header page-header-actions">
-        <div>
-          <h1 className="page-title">Customers</h1>
-        </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => setShowCreateModal(true)}
-        >
-          New customer
-        </button>
-      </header>
-
       {error && <div className="alert alert-danger">{error}</div>}
 
       <section className="customer-atlas">
@@ -158,11 +145,14 @@ export default function Customers() {
       </section>
 
       <div className="card customer-card">
-        <div className="card-header">
-          <div>
-            <span className="section-kicker">Accounts</span>
-            <h2>Customer list</h2>
-          </div>
+        <div className="card-header customer-card-actions">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setShowCreateModal(true)}
+          >
+            New customer
+          </button>
         </div>
 
         {customers.length === 0 ? (

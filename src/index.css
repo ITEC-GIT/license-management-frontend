@@ -1624,7 +1624,7 @@ table tbody tr:last-child td {
 
 .license-type-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
@@ -3066,6 +3066,10 @@ body::before {
   font-size: clamp(1.5rem, 2.4vw, 1.95rem);
 }
 
+.customer-card-actions {
+  justify-content: flex-end;
+}
+
 .atlas-stack {
   min-height: 190px;
   position: relative;
@@ -3390,7 +3394,7 @@ body::before {
 
 .generate-license-modal .wizard-panel {
   height: clamp(330px, 46dvh, 430px);
-  padding: 0.8rem;
+  padding: 0.5rem 0.8rem 0rem 0.8rem;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
