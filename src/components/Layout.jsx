@@ -128,10 +128,6 @@ export default function Layout() {
               <span className="sidebar-product-tag">Enterprise Console</span>
             </div>
           </div>
-          <p className="sidebar-meta">
-            <span className="sidebar-user-label">Signed in as</span>
-            <span className="sidebar-user-name">{displayName}</span>
-          </p>
         </div>
 
         <nav>
@@ -163,6 +159,11 @@ export default function Layout() {
             </li>
           </ul>
         </nav>
+
+        <p className="sidebar-meta sidebar-meta-bottom">
+          <span className="sidebar-user-label">Signed in as</span>
+          <span className="sidebar-user-name">{displayName}</span>
+        </p>
       </aside>
 
       <main className="main-content">
