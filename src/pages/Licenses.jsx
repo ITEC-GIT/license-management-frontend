@@ -111,12 +111,16 @@ export default function Licenses() {
   }
 
   return (
-    <div>
-      <header className="page-header page-header-actions">
+    <div className="licenses-page">
+      <header className="page-header page-header-actions licenses-page-header">
         <div>
           <h1 className="page-title">Licenses</h1>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowGenerateModal(true)}>
+        <button
+          type="button"
+          className="btn btn-primary license-generate-action"
+          onClick={() => setShowGenerateModal(true)}
+        >
           Generate license
         </button>
       </header>

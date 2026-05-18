@@ -3513,6 +3513,41 @@ body {
   max-width: 100%;
 }
 
+.licenses-page,
+.licenses-page .registry-card,
+.licenses-page .summary-item,
+.licenses-page .filter-toolbar,
+.licenses-page .ribbon-copy,
+.licenses-page .ribbon-track {
+  min-width: 0;
+}
+
+.licenses-page-header {
+  align-items: flex-start;
+}
+
+.license-generate-action {
+  align-self: flex-end;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.licenses-page .license-ribbon {
+  overflow-wrap: anywhere;
+}
+
+.licenses-page .summary-strip {
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+}
+
+.licenses-page .filter-toolbar {
+  max-width: 100%;
+}
+
+.licenses-page .responsive-table table {
+  min-width: 720px;
+}
+
 @media (max-width: 1100px) {
   .main-content-inner,
   .topbar {
@@ -3556,6 +3591,21 @@ body {
 
   .modal {
     width: min(100%, calc(100vw - 1rem));
+  }
+}
+
+@media (max-width: 760px) {
+  .licenses-page-header {
+    align-items: flex-end;
+  }
+
+  .licenses-page-header .license-generate-action {
+    width: auto;
+    max-width: 100%;
+  }
+
+  .licenses-page .filter-toolbar {
+    justify-content: stretch;
   }
 }
 
@@ -3625,6 +3675,33 @@ body {
 
   .filter-toolbar .btn-sm {
     width: 100%;
+  }
+
+  .licenses-page-header {
+    gap: 0.75rem;
+  }
+
+  .licenses-page-header .license-generate-action {
+    align-self: stretch;
+    width: 100%;
+  }
+
+  .licenses-page .license-ribbon,
+  .licenses-page .registry-card {
+    padding: 0.9rem;
+  }
+
+  .licenses-page .ribbon-track {
+    gap: 0.55rem;
+  }
+
+  .licenses-page .summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .licenses-page .summary-item {
+    padding: 0.8rem;
   }
 
   .responsive-table tr {
@@ -3748,6 +3825,10 @@ body {
   }
 
   .filter-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .licenses-page .summary-strip {
     grid-template-columns: 1fr;
   }
 }
