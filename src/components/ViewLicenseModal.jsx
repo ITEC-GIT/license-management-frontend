@@ -1,5 +1,11 @@
 import { useState } from 'react'
 
+const visibleTabLabels = {
+  dashboard: 'Dashboard',
+  licenses: 'Licenses',
+  customers: 'Customers',
+}
+
 export default function ViewLicenseModal({ license, onClose }) {
   const [copied, setCopied] = useState(false)
 
@@ -15,6 +21,17 @@ export default function ViewLicenseModal({ license, onClose }) {
   } catch (error) {
     licenseData = null
   }
+
+  const visibleTabs = license.visible_tabs || license.allowed_tabs || licenseData?.visible_tabs || licenseData?.allowed_tabs || []
+  const normalizedVisibleTabs = Array.isArray(visibleTabs)
+    ? visibleTabs
+    : String(visibleTabs)
+        .split(',')
+        .map(tab => tab.trim())
+        .filter(Boolean)
+  const visibleTabsLabel = normalizedVisibleTabs
+    .map(tab => visibleTabLabels[tab] || tab)
+    .join(', ')
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -87,6 +104,12 @@ export default function ViewLicenseModal({ license, onClose }) {
                   <tr>
                     <td>Hardware ID</td>
                     <td className="cell-mono">{license.hardware_id}</td>
+                  </tr>
+                )}
+                {normalizedVisibleTabs.length > 0 && (
+                  <tr>
+                    <td>Visible tabs</td>
+                    <td>{visibleTabsLabel}</td>
                   </tr>
                 )}
                 <tr>

@@ -38,6 +38,30 @@ const licenseTypes = [
     description: 'Time-boxed evaluation before purchase.',
     glyph: 'T',
   },
+  {
+    value: 'customized',
+    label: 'Customized',
+    description: 'Choose exactly which application tabs are visible.',
+    glyph: 'C',
+  },
+]
+
+const visibleTabOptions = [
+  {
+    value: 'dashboard',
+    label: 'Dashboard',
+    description: 'Overview, health metrics, and recent activity.',
+  },
+  {
+    value: 'licenses',
+    label: 'Licenses',
+    description: 'License registry, downloads, and revocation tools.',
+  },
+  {
+    value: 'customers',
+    label: 'Customers',
+    description: 'Customer insights and account-level license summaries.',
+  },
 ]
 
 export default function GenerateLicenseModal({ onClose, onGenerate }) {
@@ -48,6 +72,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     max_admins: '',
     max_computers: '',
     hardware_id: '',
+    visible_tabs: [],
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -92,15 +117,43 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
   const isFirstStep = currentStep === 0
   const isLastStep = currentStep === steps.length - 1
+  const isCustomizedLicense = formData.license_type === 'customized'
   const isDirty =
     formData.license_type !== 'full' ||
     ['customer_id', 'expires_days', 'max_admins', 'max_computers', 'hardware_id'].some(
       field => Boolean(formData[field])
-    )
+    ) ||
+    formData.visible_tabs.length > 0
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => {
+      if (name !== 'license_type') {
+        return { ...prev, [name]: value }
+      }
+
+      return {
+        ...prev,
+        license_type: value,
+        visible_tabs:
+          value === 'customized'
+            ? prev.visible_tabs.length > 0
+              ? prev.visible_tabs
+              : visibleTabOptions.map(tab => tab.value)
+            : [],
+      }
+    })
+  }
+
+  const handleVisibleTabChange = (e) => {
+    const { value, checked } = e.target
+
+    setFormData(prev => ({
+      ...prev,
+      visible_tabs: checked
+        ? [...prev.visible_tabs, value]
+        : prev.visible_tabs.filter(tab => tab !== value),
+    }))
   }
 
   const goToStep = (stepIndex) => {
@@ -110,6 +163,12 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
   const handleNext = () => {
     setError('')
+
+    if (currentStep === 0 && isCustomizedLicense && formData.visible_tabs.length === 0) {
+      setError('Select at least one visible tab for a customized license.')
+      return
+    }
+
     setCurrentStep(prev => Math.min(prev + 1, steps.length - 1))
   }
 
@@ -130,6 +189,12 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     setLoading(true)
 
     try {
+      if (isCustomizedLicense && formData.visible_tabs.length === 0) {
+        setError('Select at least one visible tab for a customized license.')
+        setLoading(false)
+        return
+      }
+
       const data = {
         license_type: formData.license_type,
         customer_id: formData.customer_id || undefined,
@@ -137,6 +202,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
         max_admins: formData.max_admins ? parseInt(formData.max_admins) : undefined,
         max_computers: formData.max_computers ? parseInt(formData.max_computers) : undefined,
         hardware_id: formData.hardware_id || undefined,
+        visible_tabs: isCustomizedLicense ? formData.visible_tabs : undefined,
       }
 
       await onGenerate(data)
@@ -167,10 +233,14 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   const selectedCustomerLabel = selectedCustomer
     ? getCustomerLabel(selectedCustomer)
     : formData.customer_id || 'Unassigned'
+  const selectedVisibleTabs = formData.visible_tabs
+    .map(tab => visibleTabOptions.find(option => option.value === tab)?.label || tab)
+    .join(', ')
 
   const reviewItems = [
     ['License type', licenseTypes.find(type => type.value === formData.license_type)?.label || formData.license_type],
     ['Customer', selectedCustomerLabel],
+    ...(isCustomizedLicense ? [['Visible tabs', selectedVisibleTabs || 'None selected']] : []),
     ['Expiration', formData.expires_days ? `${formData.expires_days} days` : 'No expiration'],
     ['Max admins', formData.max_admins || 'Unlimited'],
     ['Max computers', formData.max_computers || 'Unlimited'],
@@ -248,6 +318,35 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                       </label>
                     ))}
                   </div>
+
+                  {isCustomizedLicense && (
+                    <div className="visible-tabs-panel">
+                      <div className="wizard-section-heading">
+                        <span>Customized access</span>
+                        <h3>Visible tabs</h3>
+                      </div>
+
+                      <div className="visible-tabs-grid">
+                        {visibleTabOptions.map(tab => (
+                          <label
+                            key={tab.value}
+                            className={`visible-tab-card ${formData.visible_tabs.includes(tab.value) ? 'selected' : ''}`}
+                          >
+                            <input
+                              type="checkbox"
+                              value={tab.value}
+                              checked={formData.visible_tabs.includes(tab.value)}
+                              onChange={handleVisibleTabChange}
+                            />
+                            <span>
+                              <strong>{tab.label}</strong>
+                              <small>{tab.description}</small>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="form-group wizard-field">
                     <label>Customer</label>
