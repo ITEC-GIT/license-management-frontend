@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
+import PaginationControls from '../components/PaginationControls'
 import { createCustomer, getCustomers, getLicenses } from '../services/api'
+
+const CUSTOMERS_PAGE_SIZE = 10
 
 export default function Customers() {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -93,6 +97,17 @@ export default function Customers() {
       )
     : null
   const attentionCustomers = customers.filter((customer) => customer.expiredLicenses > 0).length
+  const totalPages = Math.max(1, Math.ceil(customers.length / CUSTOMERS_PAGE_SIZE))
+  const paginatedCustomers = customers.slice(
+    (currentPage - 1) * CUSTOMERS_PAGE_SIZE,
+    currentPage * CUSTOMERS_PAGE_SIZE
+  )
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
 
   if (loading) {
     return (
@@ -172,7 +187,7 @@ export default function Customers() {
                 </tr>
               </thead>
               <tbody>
-                {customers.map((customer) => (
+                {paginatedCustomers.map((customer) => (
                   <tr key={customer.id}>
                     <td data-label="Customer ID">
                       <div className="record-title">
@@ -202,6 +217,13 @@ export default function Customers() {
                 ))}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={currentPage}
+              totalItems={customers.length}
+              pageSize={CUSTOMERS_PAGE_SIZE}
+              onPageChange={setCurrentPage}
+              itemLabel="customers"
+            />
           </div>
         )}
       </div>

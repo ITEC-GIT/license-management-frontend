@@ -1345,6 +1345,34 @@ table tbody tr:last-child td {
   gap: 0.35rem;
 }
 
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.76), rgba(255, 255, 255, 0.92));
+}
+
+.pagination-summary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.pagination-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.pagination-actions .btn[aria-current='page'] {
+  pointer-events: none;
+}
+
 @media (max-width: 900px) {
   .td-actions {
     white-space: normal;
@@ -2634,6 +2662,19 @@ table tbody tr:hover {
 
   .responsive-table .td-actions::before {
     padding-top: 0.55rem;
+  }
+
+  .pagination-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination-summary {
+    text-align: center;
+  }
+
+  .pagination-actions {
+    justify-content: center;
   }
 
   .modal-overlay {

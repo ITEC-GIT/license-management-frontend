@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { getLicenses, generateLicense, revokeLicense } from '../services/api'
 import GenerateLicenseModal from '../components/GenerateLicenseModal'
+import PaginationControls from '../components/PaginationControls'
 import ViewLicenseModal from '../components/ViewLicenseModal'
+
+const LICENSES_PAGE_SIZE = 10
 
 export default function Licenses() {
   const [licenses, setLicenses] = useState([])
@@ -9,6 +12,7 @@ export default function Licenses() {
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [viewLicense, setViewLicense] = useState(null)
   const [filter, setFilter] = useState('all') // all, active, expired, revoked
+  const [currentPage, setCurrentPage] = useState(1)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -84,6 +88,21 @@ export default function Licenses() {
     if (filter === 'all') return true
     return getLicenseStatus(license) === filter
   })
+  const totalPages = Math.max(1, Math.ceil(filteredLicenses.length / LICENSES_PAGE_SIZE))
+  const paginatedLicenses = filteredLicenses.slice(
+    (currentPage - 1) * LICENSES_PAGE_SIZE,
+    currentPage * LICENSES_PAGE_SIZE
+  )
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filter])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
 
   const getStatusBadge = (license) => {
     const status = getLicenseStatus(license)
@@ -197,7 +216,7 @@ export default function Licenses() {
                 </tr>
               </thead>
               <tbody>
-                {filteredLicenses.map((license) => (
+                {paginatedLicenses.map((license) => (
                   <tr key={license.id} className={`registry-row row-${getLicenseStatus(license)}`}>
                     <td data-label="ID">
                       <span className="license-id-token">#{license.id}</span>
@@ -256,6 +275,13 @@ export default function Licenses() {
                 ))}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={currentPage}
+              totalItems={filteredLicenses.length}
+              pageSize={LICENSES_PAGE_SIZE}
+              onPageChange={setCurrentPage}
+              itemLabel="licenses"
+            />
           </div>
         )}
       </div>
