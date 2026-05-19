@@ -88,14 +88,6 @@ export default function Login() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-
-        <div className="login-footnote">
-          <p>Default credentials</p>
-          <p>
-            <strong>admin</strong> / <strong>admin123</strong>
-          </p>
-          <p className="login-warning">Change the password after first login.</p>
-        </div>
       </div>
     </div>
   )
