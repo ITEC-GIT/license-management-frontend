@@ -6,6 +6,16 @@ const visibleTabLabels = {
   customers: 'Customers',
 }
 
+const normalizeTabs = (tabs) => {
+  if (Array.isArray(tabs)) return tabs
+  if (!tabs) return []
+
+  return String(tabs)
+    .split(',')
+    .map(tab => tab.trim())
+    .filter(Boolean)
+}
+
 export default function ViewLicenseModal({ license, onClose }) {
   const [copied, setCopied] = useState(false)
 
@@ -22,16 +32,19 @@ export default function ViewLicenseModal({ license, onClose }) {
     licenseData = null
   }
 
-  const visibleTabs = license.visible_tabs || license.allowed_tabs || licenseData?.visible_tabs || licenseData?.allowed_tabs || []
-  const normalizedVisibleTabs = Array.isArray(visibleTabs)
-    ? visibleTabs
-    : String(visibleTabs)
-        .split(',')
-        .map(tab => tab.trim())
-        .filter(Boolean)
-  const visibleTabsLabel = normalizedVisibleTabs
-    .map(tab => visibleTabLabels[tab] || tab)
-    .join(', ')
+  const selectedTabs = normalizeTabs(
+    license.selected_tabs ??
+    license.visible_tabs ??
+    license.allowed_tabs ??
+    licenseData?.selected_tabs ??
+    licenseData?.visible_tabs ??
+    licenseData?.allowed_tabs
+  )
+  const selectedTabsLabel = selectedTabs.length > 0
+    ? selectedTabs.map(tab => visibleTabLabels[tab] || tab).join(', ')
+    : license.license_type === 'full'
+      ? 'All tabs'
+      : 'No tabs selected'
 
   return (
     <div className="modal-overlay view-license-overlay" onClick={onClose}>
@@ -61,13 +74,8 @@ export default function ViewLicenseModal({ license, onClose }) {
           </div>
 
           <div className="modal-detail-block">
-            <h3 className="modal-section-title">Basic information</h3>
             <table className="kv-table">
               <tbody>
-                <tr>
-                  <td>License ID</td>
-                  <td>#{license.id}</td>
-                </tr>
                 <tr>
                   <td>Type</td>
                   <td>
@@ -104,12 +112,10 @@ export default function ViewLicenseModal({ license, onClose }) {
                     <td className="cell-mono">{license.hardware_id}</td>
                   </tr>
                 )}
-                {normalizedVisibleTabs.length > 0 && (
-                  <tr>
-                    <td>Visible tabs</td>
-                    <td>{visibleTabsLabel}</td>
-                  </tr>
-                )}
+                <tr>
+                  <td>Tabs</td>
+                  <td>{selectedTabsLabel}</td>
+                </tr>
                 <tr>
                   <td>Status</td>
                   <td>
