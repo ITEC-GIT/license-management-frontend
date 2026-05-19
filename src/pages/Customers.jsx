@@ -291,7 +291,6 @@ function CreateCustomerModal({ onClose, onCreate }) {
         <div className="modal-header">
           <div>
             <h2>New Customer</h2>
-            <p className="modal-header-copy">Create a customer record for future licenses.</p>
           </div>
           <button
             type="button"
@@ -308,13 +307,12 @@ function CreateCustomerModal({ onClose, onCreate }) {
             {error && <div className="alert alert-danger">{error}</div>}
 
             <div className="form-group">
-              <label>Customer name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="ACME Corp"
+                placeholder="Customer name"
                 required
               />
             </div>

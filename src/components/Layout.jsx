@@ -131,7 +131,6 @@ export default function Layout() {
         </div>
 
         <nav>
-          <p className="sidebar-section-label">License Management</p>
           <ul className="sidebar-nav">
             <li>
               <NavLink to="/" end className={navLinkClass}>
