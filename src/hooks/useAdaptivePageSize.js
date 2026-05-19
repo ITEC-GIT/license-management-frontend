@@ -33,6 +33,9 @@ export default function useAdaptivePageSize({
   useLayoutEffect(() => {
     const container = containerRef.current
     if (!container || totalItems <= 0) {
+      if (container) {
+        container.style.removeProperty('--adaptive-table-min-height')
+      }
       setPageSize(minRows)
       return undefined
     }
@@ -58,6 +61,14 @@ export default function useAdaptivePageSize({
           availableWithoutPagination - (needsPagination ? measuredPaginationHeight : 0)
         const calculatedRows = Math.floor(availableHeight / rowHeight)
         const nextPageSize = clamp(calculatedRows, minRows, Math.min(maxRows, totalItems))
+        const totalPages = Math.ceil(totalItems / nextPageSize)
+
+        if (totalPages > 1) {
+          const minimumTableHeight = tableHeaderHeight + rowHeight * nextPageSize + measuredPaginationHeight
+          container.style.setProperty('--adaptive-table-min-height', `${Math.ceil(minimumTableHeight)}px`)
+        } else {
+          container.style.removeProperty('--adaptive-table-min-height')
+        }
 
         setPageSize(prevPageSize => (prevPageSize === nextPageSize ? prevPageSize : nextPageSize))
       })
@@ -73,6 +84,7 @@ export default function useAdaptivePageSize({
       if (frameId) cancelAnimationFrame(frameId)
       window.removeEventListener('resize', calculatePageSize)
       resizeObserver.disconnect()
+      container.style.removeProperty('--adaptive-table-min-height')
     }
   }, [
     bottomGutter,
