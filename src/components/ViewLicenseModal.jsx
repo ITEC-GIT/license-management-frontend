@@ -147,12 +147,6 @@ export default function ViewLicenseModal({ license, onClose }) {
             {copied && <p className="copy-feedback">License payload copied.</p>}
           </div>
         </div>
-
-        <div className="modal-footer">
-          <button type="button" className="btn btn-primary" onClick={onClose}>
-            Close
-          </button>
-        </div>
       </div>
     </div>
   )

@@ -596,10 +596,10 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                   </div>
 
                   <div className="wizard-review-card">
-                    <div className="wizard-review-header">
+                    {/* <div className="wizard-review-header">
                       <span className="wizard-review-badge">{reviewItems[0][1]}</span>
                       <strong>{selectedCustomerLabel}</strong>
-                    </div>
+                    </div> */}
 
                     <dl className="wizard-review-list">
                       {reviewItems.map(([label, value]) => (
