@@ -212,13 +212,34 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
   const handleVisibleTabChange = (e) => {
     const { value, checked } = e.target
+    const changedTab = visibleTabOptions.find(tab => tab.value === value)
+    const childValues = changedTab
+      ? visibleTabOptions
+          .filter(tab => tab.parentId === changedTab.id)
+          .map(tab => tab.value)
+      : []
+    const parentValue = changedTab?.parentId
+      ? visibleTabOptions.find(tab => tab.id === changedTab.parentId)?.value
+      : null
 
-    setFormData(prev => ({
-      ...prev,
-      visible_tabs: checked
-        ? [...prev.visible_tabs, value]
-        : prev.visible_tabs.filter(tab => tab !== value),
-    }))
+    setFormData(prev => {
+      let visibleTabs = prev.visible_tabs.filter(tab => tab !== value)
+
+      if (checked) {
+        visibleTabs = [...visibleTabs, value]
+
+        if (parentValue) {
+          visibleTabs = [...visibleTabs, parentValue]
+        }
+      } else if (childValues.length > 0) {
+        visibleTabs = visibleTabs.filter(tab => !childValues.includes(tab))
+      }
+
+      return {
+        ...prev,
+        visible_tabs: [...new Set(visibleTabs)],
+      }
+    })
   }
 
   const goToStep = (stepIndex) => {
