@@ -3282,6 +3282,11 @@ body::before {
   gap: 0.6rem;
 }
 
+.visible-tabs-message {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
 .visible-tab-card {
   display: flex;
   align-items: flex-start;

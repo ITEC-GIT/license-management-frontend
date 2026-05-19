@@ -68,6 +68,11 @@ export const verifyLicense = (file) => {
   })
 }
 
+export const getVisibleTabs = () =>
+  api.get('/api/visible-tabs', {
+    headers: { Accept: 'application/json' }
+  })
+
 // Customers
 export const getCustomers = (params) => 
   api.get('/api/customers', { params })
