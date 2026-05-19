@@ -243,9 +243,20 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     })
   }
 
+  const validateCustomerSelection = () => {
+    if (!formData.customer_id) {
+      setError('Select a customer before generating a license.')
+      setCurrentStep(1)
+      return false
+    }
+
+    return true
+  }
+
   const goToStep = (stepIndex) => {
     if (generationComplete) return
     setError('')
+    if (stepIndex > 1 && !validateCustomerSelection()) return
     setCurrentStep(stepIndex)
   }
 
@@ -260,6 +271,10 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
       formData.visible_tabs.length === 0
     ) {
       setError('Select at least one visible tab for a customized license.')
+      return
+    }
+
+    if (currentStep === 1 && !validateCustomerSelection()) {
       return
     }
 
@@ -293,6 +308,11 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     setLoading(true)
 
     try {
+      if (!validateCustomerSelection()) {
+        setLoading(false)
+        return
+      }
+
       if (isCustomizedLicense && !visibleTabsLoading && formData.visible_tabs.length === 0) {
         setError('Select at least one visible tab for a customized license.')
         setLoading(false)
@@ -301,7 +321,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
       const data = {
         license_type: formData.license_type,
-        customer_id: formData.customer_id || undefined,
+        customer_id: formData.customer_id,
         expires_days: formData.expires_days ? parseInt(formData.expires_days) : undefined,
         max_admins: formData.max_admins ? parseInt(formData.max_admins) : undefined,
         max_computers: formData.max_computers ? parseInt(formData.max_computers) : undefined,
@@ -339,7 +359,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   )
   const selectedCustomerLabel = selectedCustomer
     ? getCustomerLabel(selectedCustomer)
-    : formData.customer_id || 'Unassigned'
+    : formData.customer_id || 'Required'
   const selectedVisibleTabs = formData.visible_tabs
     .map(tab => visibleTabOptions.find(option => option.value === tab)?.label || tab)
     .join(', ')
@@ -508,6 +528,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                       value={formData.customer_id}
                       onChange={handleChange}
                       disabled={customersLoading || customers.length === 0}
+                      required
                     >
                       <option value="">
                         {customersLoading ? 'Loading customers...' : 'Select a customer'}
@@ -617,13 +638,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
           <div className="modal-footer">
             {generationComplete ? (
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={requestClose}
-              >
-                Close
-              </button>
+              <></>
             ) : (
               <>
                 <button
