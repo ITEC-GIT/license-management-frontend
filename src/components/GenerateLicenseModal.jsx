@@ -62,17 +62,25 @@ const getVisibleTabsList = (data) => {
 const normalizeVisibleTab = (tab) => {
   if (typeof tab === 'string') {
     return {
+      id: tab,
+      parentId: null,
       value: tab,
       label: formatTabLabel(tab),
       description: '',
     }
   }
 
-  const value = String(tab.value ?? tab.key ?? tab.id ?? tab.name ?? tab.label ?? '')
+  const value = String(tab.tab_name ?? tab.value ?? tab.key ?? tab.name ?? tab.label ?? tab.id ?? '')
+  const id = String(tab.id ?? value)
+  const parentId = tab.parent_tab_id === null || tab.parent_tab_id === undefined
+    ? null
+    : String(tab.parent_tab_id)
 
   return {
+    id,
+    parentId,
     value,
-    label: tab.label || tab.name || tab.title || tab.display_name || formatTabLabel(value),
+    label: tab.display_tab_name || tab.label || tab.name || tab.title || tab.display_name || formatTabLabel(value),
     description: tab.description || tab.summary || '',
   }
 }
@@ -297,6 +305,31 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   const selectedVisibleTabs = formData.visible_tabs
     .map(tab => visibleTabOptions.find(option => option.value === tab)?.label || tab)
     .join(', ')
+  const visibleTabParentIds = new Set(visibleTabOptions.map(tab => tab.id))
+  const visibleTabGroups = visibleTabOptions
+    .filter(tab => !tab.parentId || !visibleTabParentIds.has(tab.parentId))
+    .map(parent => ({
+      parent,
+      children: visibleTabOptions.filter(tab => tab.parentId === parent.id),
+    }))
+
+  const renderVisibleTabCard = (tab, modifier = '') => (
+    <label
+      key={tab.id}
+      className={`visible-tab-card ${modifier} ${formData.visible_tabs.includes(tab.value) ? 'selected' : ''}`}
+    >
+      <input
+        type="checkbox"
+        value={tab.value}
+        checked={formData.visible_tabs.includes(tab.value)}
+        onChange={handleVisibleTabChange}
+      />
+      <span>
+        <strong>{tab.label}</strong>
+        {tab.description && <small>{tab.description}</small>}
+      </span>
+    </label>
+  )
 
   const reviewItems = [
     ['License type', licenseTypes.find(type => type.value === formData.license_type)?.label || formData.license_type],
@@ -397,22 +430,15 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                         {!visibleTabsLoading && !visibleTabsError && visibleTabOptions.length === 0 && (
                           <p className="form-hint visible-tabs-message">No visible tabs are available.</p>
                         )}
-                        {!visibleTabsLoading && !visibleTabsError && visibleTabOptions.map(tab => (
-                          <label
-                            key={tab.value}
-                            className={`visible-tab-card ${formData.visible_tabs.includes(tab.value) ? 'selected' : ''}`}
-                          >
-                            <input
-                              type="checkbox"
-                              value={tab.value}
-                              checked={formData.visible_tabs.includes(tab.value)}
-                              onChange={handleVisibleTabChange}
-                            />
-                            <span>
-                              <strong>{tab.label}</strong>
-                              {tab.description && <small>{tab.description}</small>}
-                            </span>
-                          </label>
+                        {!visibleTabsLoading && !visibleTabsError && visibleTabGroups.map(({ parent, children }) => (
+                          <div className="visible-tab-group" key={parent.id}>
+                            {renderVisibleTabCard(parent, 'visible-tab-card-parent')}
+                            {children.length > 0 && (
+                              <div className="visible-tab-children">
+                                {children.map(child => renderVisibleTabCard(child, 'visible-tab-card-child'))}
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     </div>
