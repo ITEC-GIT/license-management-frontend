@@ -97,6 +97,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     visible_tabs: [],
   })
   const [loading, setLoading] = useState(false)
+  const [generationComplete, setGenerationComplete] = useState(false)
   const [error, setError] = useState('')
   const [currentStep, setCurrentStep] = useState(0)
   const [customers, setCustomers] = useState([])
@@ -243,11 +244,13 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   }
 
   const goToStep = (stepIndex) => {
+    if (generationComplete) return
     setError('')
     setCurrentStep(stepIndex)
   }
 
   const handleNext = () => {
+    if (generationComplete) return
     setError('')
 
     if (
@@ -264,13 +267,14 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   }
 
   const handlePrevious = () => {
+    if (generationComplete) return
     setError('')
     setCurrentStep(prev => Math.max(prev - 1, 0))
   }
 
   const requestClose = () => {
     if (loading) return
-    if (isDirty && !confirm('Discard this license draft?')) return
+    if (!generationComplete && isDirty && !confirm('Discard this license draft?')) return
     onClose()
   }
 
@@ -306,6 +310,9 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
       }
 
       await onGenerate(data)
+      setGenerationComplete(true)
+      setLoading(false)
+      setCurrentStep(steps.length - 1)
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to generate license')
       setLoading(false)
@@ -401,6 +408,11 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                 {error}
               </div>
             )}
+            {generationComplete && (
+              <div className="alert alert-success">
+                License generated successfully.
+              </div>
+            )}
 
             <div className="wizard-steps" aria-label="Generate license steps">
               {steps.map((step, index) => (
@@ -409,7 +421,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                   type="button"
                   className={`wizard-step ${index === currentStep ? 'active' : ''} ${index < currentStep ? 'complete' : ''}`}
                   onClick={() => goToStep(index)}
-                  disabled={loading || (isCustomizedLicense && visibleTabsLoading)}
+                  disabled={generationComplete || loading || (isCustomizedLicense && visibleTabsLoading)}
                   aria-current={index === currentStep ? 'step' : undefined}
                 >
                   <span className="wizard-step-index">{index + 1}</span>
@@ -604,31 +616,43 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
           </div>
 
           <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={isFirstStep ? requestClose : handlePrevious}
-              disabled={loading}
-            >
-              {isFirstStep ? 'Cancel' : 'Back'}
-            </button>
-            {!isLastStep ? (
+            {generationComplete ? (
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={handleNext}
-                disabled={loading || (isCustomizedLicense && visibleTabsLoading)}
+                onClick={requestClose}
               >
-                Continue
+                Close
               </button>
             ) : (
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading || (isCustomizedLicense && visibleTabsLoading)}
-              >
-                {loading ? 'Generating...' : 'Generate License'}
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={isFirstStep ? requestClose : handlePrevious}
+                  disabled={loading}
+                >
+                  {isFirstStep ? 'Cancel' : 'Back'}
+                </button>
+                {!isLastStep ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleNext}
+                    disabled={loading || (isCustomizedLicense && visibleTabsLoading)}
+                  >
+                    Continue
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={loading || (isCustomizedLicense && visibleTabsLoading)}
+                  >
+                    {loading ? 'Generating...' : 'Generate License'}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </form>

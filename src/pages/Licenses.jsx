@@ -32,7 +32,6 @@ export default function Licenses() {
     try {
       await generateLicense(data)
       await loadLicenses()
-      setShowGenerateModal(false)
     } catch (error) {
       throw error
     }
