@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getLicenses, generateLicense, revokeLicense } from '../services/api'
 import GenerateLicenseModal from '../components/GenerateLicenseModal'
 import PaginationControls from '../components/PaginationControls'
 import ViewLicenseModal from '../components/ViewLicenseModal'
+import useAdaptivePageSize from '../hooks/useAdaptivePageSize'
 
-const LICENSES_PAGE_SIZE = 10
+const LICENSES_MAX_PAGE_SIZE = 50
 
 export default function Licenses() {
+  const tableContainerRef = useRef(null)
   const [licenses, setLicenses] = useState([])
   const [loading, setLoading] = useState(true)
   const [showGenerateModal, setShowGenerateModal] = useState(false)
@@ -88,10 +90,18 @@ export default function Licenses() {
     if (filter === 'all') return true
     return getLicenseStatus(license) === filter
   })
-  const totalPages = Math.max(1, Math.ceil(filteredLicenses.length / LICENSES_PAGE_SIZE))
+  const pageSize = useAdaptivePageSize({
+    containerRef: tableContainerRef,
+    totalItems: filteredLicenses.length,
+    maxRows: LICENSES_MAX_PAGE_SIZE,
+    desktopFallbackRowHeight: 56,
+    mobileFallbackRowHeight: 172,
+    dependencies: [filter],
+  })
+  const totalPages = Math.max(1, Math.ceil(filteredLicenses.length / pageSize))
   const paginatedLicenses = filteredLicenses.slice(
-    (currentPage - 1) * LICENSES_PAGE_SIZE,
-    currentPage * LICENSES_PAGE_SIZE
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
   )
 
   useEffect(() => {
@@ -201,7 +211,7 @@ export default function Licenses() {
             <p>{emptyMessage()}</p>
           </div>
         ) : (
-          <div className="table-container responsive-table">
+          <div className="table-container responsive-table" ref={tableContainerRef}>
             <table>
               <thead>
                 <tr>
@@ -278,7 +288,7 @@ export default function Licenses() {
             <PaginationControls
               currentPage={currentPage}
               totalItems={filteredLicenses.length}
-              pageSize={LICENSES_PAGE_SIZE}
+              pageSize={pageSize}
               onPageChange={setCurrentPage}
               itemLabel="licenses"
             />

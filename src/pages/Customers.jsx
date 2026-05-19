@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import PaginationControls from '../components/PaginationControls'
 import { createCustomer, getCustomers, getLicenses } from '../services/api'
+import useAdaptivePageSize from '../hooks/useAdaptivePageSize'
 
-const CUSTOMERS_PAGE_SIZE = 10
+const CUSTOMERS_MAX_PAGE_SIZE = 50
 
 export default function Customers() {
+  const tableContainerRef = useRef(null)
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -97,10 +99,17 @@ export default function Customers() {
       )
     : null
   const attentionCustomers = customers.filter((customer) => customer.expiredLicenses > 0).length
-  const totalPages = Math.max(1, Math.ceil(customers.length / CUSTOMERS_PAGE_SIZE))
+  const pageSize = useAdaptivePageSize({
+    containerRef: tableContainerRef,
+    totalItems: customers.length,
+    maxRows: CUSTOMERS_MAX_PAGE_SIZE,
+    desktopFallbackRowHeight: 56,
+    mobileFallbackRowHeight: 132,
+  })
+  const totalPages = Math.max(1, Math.ceil(customers.length / pageSize))
   const paginatedCustomers = customers.slice(
-    (currentPage - 1) * CUSTOMERS_PAGE_SIZE,
-    currentPage * CUSTOMERS_PAGE_SIZE
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
   )
 
   useEffect(() => {
@@ -175,7 +184,7 @@ export default function Customers() {
             <p>No customers found. Create your first customer to begin tracking accounts.</p>
           </div>
         ) : (
-          <div className="table-container responsive-table">
+          <div className="table-container responsive-table" ref={tableContainerRef}>
             <table>
               <thead>
                 <tr>
@@ -220,7 +229,7 @@ export default function Customers() {
             <PaginationControls
               currentPage={currentPage}
               totalItems={customers.length}
-              pageSize={CUSTOMERS_PAGE_SIZE}
+              pageSize={pageSize}
               onPageChange={setCurrentPage}
               itemLabel="customers"
             />

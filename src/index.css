@@ -1379,6 +1379,40 @@ table tbody tr:last-child td {
   }
 }
 
+@media (max-height: 760px) and (min-width: 761px) {
+  .main-content {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .license-ribbon,
+  .customer-atlas,
+  .card {
+    margin-bottom: 0.75rem;
+  }
+
+  .license-ribbon,
+  .customer-atlas,
+  .registry-card,
+  .customer-card {
+    padding: 1rem;
+  }
+
+  .filter-toolbar {
+    margin-bottom: 0.75rem;
+  }
+
+  table th,
+  table td {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .pagination-controls {
+    padding-block: 0.6rem;
+  }
+}
+
 /* Badges */
 .badge {
   display: inline-flex;
