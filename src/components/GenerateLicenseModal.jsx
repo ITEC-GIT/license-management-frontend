@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getCustomers, getVisibleTabs } from '../services/api'
 
 const steps = [
@@ -86,6 +86,7 @@ const normalizeVisibleTab = (tab) => {
 }
 
 export default function GenerateLicenseModal({ onClose, onGenerate }) {
+  const backdropPointerDownRef = useRef(false)
   const [formData, setFormData] = useState({
     license_type: 'full',
     customer_id: '',
@@ -252,6 +253,15 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     onClose()
   }
 
+  const handleBackdropPointerDown = (e) => {
+    backdropPointerDownRef.current = e.target === e.currentTarget
+  }
+
+  const handleBackdropClick = (e) => {
+    if (!backdropPointerDownRef.current || e.target !== e.currentTarget) return
+    requestClose()
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -342,7 +352,11 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   ]
 
   return (
-    <div className="modal-overlay" onClick={requestClose}>
+    <div
+      className="modal-overlay"
+      onPointerDown={handleBackdropPointerDown}
+      onClick={handleBackdropClick}
+    >
       <div className="modal wizard-modal generate-license-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
