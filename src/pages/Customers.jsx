@@ -249,7 +249,6 @@ export default function Customers() {
 
 function CreateCustomerModal({ onClose, onCreate }) {
   const [formData, setFormData] = useState({
-    customer_id: '',
     name: '',
   })
   const [loading, setLoading] = useState(false)
@@ -264,8 +263,8 @@ function CreateCustomerModal({ onClose, onCreate }) {
     e.preventDefault()
     setError('')
 
-    if (!formData.customer_id.trim()) {
-      setError('Customer ID is required')
+    if (!formData.name.trim()) {
+      setError('Customer name is required')
       return
     }
 
@@ -273,8 +272,7 @@ function CreateCustomerModal({ onClose, onCreate }) {
 
     try {
       await onCreate({
-        customer_id: formData.customer_id.trim(),
-        name: formData.name.trim() || undefined,
+        name: formData.name.trim(),
       })
     } catch (error) {
       setError(error.response?.data?.detail || 'Failed to create customer')
@@ -310,25 +308,14 @@ function CreateCustomerModal({ onClose, onCreate }) {
             {error && <div className="alert alert-danger">{error}</div>}
 
             <div className="form-group">
-              <label>Customer ID</label>
-              <input
-                type="text"
-                name="customer_id"
-                value={formData.customer_id}
-                onChange={handleChange}
-                placeholder="customer-001"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Name</label>
+              <label>Customer name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Customer or company name"
+                placeholder="ACME Corp"
+                required
               />
             </div>
           </div>
