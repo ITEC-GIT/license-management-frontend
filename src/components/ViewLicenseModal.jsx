@@ -34,11 +34,10 @@ export default function ViewLicenseModal({ license, onClose }) {
     .join(', ')
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay view-license-overlay" onClick={onClose}>
       <div className="modal view-license-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <span className="modal-eyebrow">License record</span>
             <h2>License details · #{license.id}</h2>
           </div>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
@@ -52,7 +51,6 @@ export default function ViewLicenseModal({ license, onClose }) {
               <span>{license.license_type?.slice(0, 1)?.toUpperCase() || 'L'}</span>
             </div>
             <div>
-              <span className="section-kicker">Verification capsule</span>
               <h3>{license.customer_id || 'Unassigned license'}</h3>
               <p>
                 {license.hardware_id
