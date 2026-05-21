@@ -74,6 +74,9 @@ export default function Dashboard() {
 
   return (
     <div>
+
+      {error && <div className="alert alert-danger">{error}</div>}
+      
       <header className="page-header dashboard-hero">
         <div className="hero-copy">
           <h1 className="page-title">License Operations Dashboard</h1>
@@ -98,8 +101,6 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
-
-      {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="command-grid">
         <section className="license-orb-card">

@@ -215,6 +215,9 @@ export default function Packages() {
 
   return (
     <div className="packages-page">
+
+      {error && <div className="alert alert-danger">{error}</div>}
+
       <header className="page-header packages-hero">
         <div className="packages-hero-copy">
           <h1 className="page-title">Access plans built around features</h1>
@@ -240,11 +243,9 @@ export default function Packages() {
         </div>
       </header>
 
-      {error && <div className="alert alert-danger">{error}</div>}
-
       {packages.length === 0 ? (
         <div className="empty-state">
-          <p>No packages found. Packages returned by the API will appear here.</p>
+          <p>No packages found.</p>
         </div>
       ) : (
         <>
