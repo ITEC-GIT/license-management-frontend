@@ -123,7 +123,6 @@ export default function Packages() {
     setSaveMessage('')
   }, [selectedPackage?.id, selectedPackageTabKey])
 
-  const totalTabs = packages.reduce((acc, packageItem) => acc + packageItem.tabIds.length, 0)
   const largestPackage = packages.reduce(
     (largest, packageItem) => packageItem.tabIds.length > largest.tabIds.length ? packageItem : largest,
     { tabIds: [] }
@@ -218,16 +217,10 @@ export default function Packages() {
     <div className="packages-page">
       <header className="page-header packages-hero">
         <div className="packages-hero-copy">
-          <span className="eyebrow">Package catalog</span>
           <h1 className="page-title">Access plans built around features</h1>
           <p className="page-subtitle">
             Review Standard, Pro, and Super package coverage with a fast breakdown of entitlement scope.
           </p>
-          <div className="hero-actions" aria-label="Package catalog summary">
-            <span>{packages.length} packages</span>
-            <span>{uniqueTabCount} features</span>
-            <span>{totalTabs} feature assignments</span>
-          </div>
         </div>
 
         <div className="packages-hero-panel" aria-hidden="true">
@@ -236,13 +229,13 @@ export default function Packages() {
               key={packageItem.id}
               className={`package-orbit-chip package-orbit-chip-${index + 1}`}
             >
-              <strong>{packageItem.tabIds.length}</strong>
+              <strong>#{packageItem.id}</strong>
               {formatPackageName(packageItem.name)}
             </span>
           ))}
           <div className="package-orbit-core">
-            <span>{uniqueTabCount}</span>
-            <small>features</small>
+            <span>{packages.length}</span>
+            <small>packages</small>
           </div>
         </div>
       </header>
