@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getPackages, getVisibleTabs } from '../services/api'
+import { getPackages, getVisibleTabs, updatePackageTabs } from '../services/api'
 
 const formatTabLabel = (value) =>
   String(value)
@@ -44,12 +44,32 @@ const formatPackageName = (name) =>
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, letter => letter.toUpperCase())
 
+const serializeTabId = (value) => {
+  const numericValue = Number(value)
+  return Number.isNaN(numericValue) ? value : numericValue
+}
+
+const sortTabIds = (tabIds) =>
+  [...tabIds].sort((a, b) => {
+    const numericA = Number(a)
+    const numericB = Number(b)
+
+    if (!Number.isNaN(numericA) && !Number.isNaN(numericB)) {
+      return numericA - numericB
+    }
+
+    return String(a).localeCompare(String(b))
+  })
+
 export default function Packages() {
   const [packages, setPackages] = useState([])
   const [tabOptions, setTabOptions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedPackageId, setSelectedPackageId] = useState(null)
+  const [draftTabIds, setDraftTabIds] = useState([])
+  const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
 
   useEffect(() => {
     loadPackages()
@@ -96,12 +116,94 @@ export default function Packages() {
   }, [tabOptions])
 
   const selectedPackage = packages.find(packageItem => packageItem.id === selectedPackageId) || packages[0]
+  const selectedPackageTabKey = selectedPackage?.tabIds.map(String).join(',') || ''
+
+  useEffect(() => {
+    setDraftTabIds(selectedPackage?.tabIds.map(String) || [])
+    setSaveMessage('')
+  }, [selectedPackage?.id, selectedPackageTabKey])
+
   const totalTabs = packages.reduce((acc, packageItem) => acc + packageItem.tabIds.length, 0)
   const largestPackage = packages.reduce(
     (largest, packageItem) => packageItem.tabIds.length > largest.tabIds.length ? packageItem : largest,
     { tabIds: [] }
   )
   const uniqueTabCount = new Set(packages.flatMap(packageItem => packageItem.tabIds.map(String))).size
+  const availableTabs = useMemo(() => {
+    const optionsById = {}
+
+    tabOptions.forEach((tab) => {
+      optionsById[String(tab.id)] = tab
+    })
+
+    packages.forEach((packageItem) => {
+      packageItem.tabIds.forEach((tabId) => {
+        const id = String(tabId)
+        if (!optionsById[id]) {
+          optionsById[id] = {
+            id,
+            label: `Feature ${id}`,
+          }
+        }
+      })
+    })
+
+    return sortTabIds(Object.values(optionsById).map(tab => tab.id)).map(id => optionsById[String(id)])
+  }, [packages, tabOptions])
+  const selectedDraftTabIds = new Set(draftTabIds)
+  const originalTabKey = sortTabIds(selectedPackage?.tabIds.map(String) || []).join(',')
+  const draftTabKey = sortTabIds(draftTabIds).join(',')
+  const hasPackageChanges = Boolean(selectedPackage) && originalTabKey !== draftTabKey
+
+  const toggleDraftTab = (tabId) => {
+    const id = String(tabId)
+    setSaveMessage('')
+    setDraftTabIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(value => value !== id)
+      }
+
+      return sortTabIds([...prev, id]).map(String)
+    })
+  }
+
+  const resetDraftTabs = () => {
+    setDraftTabIds(selectedPackage?.tabIds.map(String) || [])
+    setSaveMessage('')
+  }
+
+  const savePackageTabs = async () => {
+    if (!selectedPackage || !hasPackageChanges) return
+
+    setSaving(true)
+    setError('')
+    setSaveMessage('')
+
+    try {
+      const nextTabIds = sortTabIds(draftTabIds).map(serializeTabId)
+      const response = await updatePackageTabs(selectedPackage.id, nextTabIds)
+      const responsePackage = response.data?.package || response.data
+      const updatedPackage = responsePackage?.tab_ids
+        ? normalizePackage(responsePackage)
+        : {
+            ...selectedPackage,
+            tabIds: nextTabIds,
+          }
+
+      setPackages(prev => prev.map(packageItem =>
+        packageItem.id === selectedPackage.id
+          ? { ...packageItem, ...updatedPackage, id: packageItem.id }
+          : packageItem
+      ))
+      setDraftTabIds(updatedPackage.tabIds.map(String))
+      setSaveMessage('Package features updated successfully.')
+    } catch (error) {
+      console.error('Failed to update package features:', error)
+      setError(error.response?.data?.detail || 'Unable to update package features. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -117,14 +219,14 @@ export default function Packages() {
       <header className="page-header packages-hero">
         <div className="packages-hero-copy">
           <span className="eyebrow">Package catalog</span>
-          <h1 className="page-title">Access plans built around visible tabs</h1>
+          <h1 className="page-title">Access plans built around features</h1>
           <p className="page-subtitle">
             Review Standard, Pro, and Super package coverage with a fast breakdown of entitlement scope.
           </p>
           <div className="hero-actions" aria-label="Package catalog summary">
             <span>{packages.length} packages</span>
-            <span>{uniqueTabCount} unique tabs</span>
-            <span>{totalTabs} assignments</span>
+            <span>{uniqueTabCount} features</span>
+            <span>{totalTabs} feature assignments</span>
           </div>
         </div>
 
@@ -140,7 +242,7 @@ export default function Packages() {
           ))}
           <div className="package-orbit-core">
             <span>{uniqueTabCount}</span>
-            <small>tabs</small>
+            <small>features</small>
           </div>
         </div>
       </header>
@@ -159,7 +261,7 @@ export default function Packages() {
               <div className="stat-value">{packages.length}</div>
             </div>
             <div className="stat-card success">
-              <h3>Unique Tabs</h3>
+              <h3>Features</h3>
               <div className="stat-value">{uniqueTabCount}</div>
             </div>
             <div className="stat-card warning">
@@ -183,7 +285,7 @@ export default function Packages() {
                 >
                   <span className="package-plan-index">#{packageItem.id}</span>
                   <strong>{formatPackageName(packageItem.name)}</strong>
-                  <small>{packageItem.tabIds.length} visible tabs</small>
+                  <small>{packageItem.tabIds.length} features</small>
                   <span className="package-plan-meter">
                     <span
                       style={{
@@ -202,18 +304,45 @@ export default function Packages() {
                 <span className="section-kicker">Selected plan</span>
                 <h2>{formatPackageName(selectedPackage.name)} package</h2>
               </div>
-              <span className="badge badge-info">{selectedPackage.tabIds.length} tabs</span>
+              <div className="package-detail-actions">
+                <span className="badge badge-info">{draftTabIds.length} features</span>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={resetDraftTabs}
+                  disabled={!hasPackageChanges || saving}
+                >
+                  Reset
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={savePackageTabs}
+                  disabled={!hasPackageChanges || saving}
+                >
+                  {saving ? 'Saving...' : 'Save features'}
+                </button>
+              </div>
             </div>
 
-            <div className="package-tab-cloud" aria-label={`${selectedPackage.name} visible tab IDs`}>
-              {selectedPackage.tabIds.map((tabId) => {
-                const tab = tabLookup[String(tabId)]
+            {saveMessage && <div className="alert alert-success package-save-alert">{saveMessage}</div>}
+
+            <div className="package-tab-cloud package-tab-editor" aria-label={`${selectedPackage.name} feature IDs`}>
+              {availableTabs.map((tab) => {
+                const isSelected = selectedDraftTabIds.has(String(tab.id))
 
                 return (
-                  <span className="package-tab-pill" key={tabId}>
-                    <strong>{tabId}</strong>
-                    <small>{tab?.label || `Tab ${tabId}`}</small>
-                  </span>
+                  <button
+                    type="button"
+                    className={`package-tab-pill package-tab-toggle ${isSelected ? 'selected' : ''}`}
+                    key={tab.id}
+                    onClick={() => toggleDraftTab(tab.id)}
+                    disabled={saving}
+                    aria-pressed={isSelected}
+                  >
+                    <strong>{tab.id}</strong>
+                    <small>{tabLookup[String(tab.id)]?.label || tab.label || `Feature ${tab.id}`}</small>
+                  </button>
                 )
               })}
             </div>
@@ -233,9 +362,9 @@ export default function Packages() {
                   <tr>
                     <th>ID</th>
                     <th>Package</th>
-                    <th>Tab Count</th>
+                    <th>Feature Count</th>
                     <th>Coverage</th>
-                    <th>First Tabs</th>
+                    <th>First Features</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -255,11 +384,11 @@ export default function Packages() {
                             <span>Package entitlement profile</span>
                           </div>
                         </td>
-                        <td data-label="Tab Count">{packageItem.tabIds.length}</td>
+                        <td data-label="Feature Count">{packageItem.tabIds.length}</td>
                         <td data-label="Coverage">
                           <span className="badge badge-success">{coverage}% coverage</span>
                         </td>
-                        <td data-label="First Tabs" className="cell-mono">
+                        <td data-label="First Features" className="cell-mono">
                           {packageItem.tabIds.slice(0, 8).join(', ')}
                           {packageItem.tabIds.length > 8 ? '...' : ''}
                         </td>

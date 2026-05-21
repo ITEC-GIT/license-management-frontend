@@ -79,6 +79,15 @@ export const getPackages = () =>
     headers: { Accept: 'application/json' }
   })
 
+export const updatePackageTabs = (id, tabIds) =>
+  api.post(
+    `/api/packages/${id}/tabs`,
+    { tab_ids: tabIds },
+    {
+      headers: { Accept: 'application/json' }
+    }
+  )
+
 // Customers
 export const getCustomers = (params) => 
   api.get('/api/customers', { params })
