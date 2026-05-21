@@ -36,12 +36,6 @@ const licenseTypes = [
     glyph: 'E',
   },
   {
-    value: 'trial',
-    label: 'Trial',
-    description: 'Time-boxed evaluation before purchase.',
-    glyph: 'T',
-  },
-  {
     value: 'customized',
     label: 'Customized',
     description: 'Choose exactly which application tabs are visible.',
