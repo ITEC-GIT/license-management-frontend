@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Licenses from './pages/Licenses'
 import Customers from './pages/Customers'
+import Packages from './pages/Packages'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children }) {
@@ -25,6 +26,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="licenses" element={<Licenses />} />
             <Route path="customers" element={<Customers />} />
+            <Route path="packages" element={<Packages />} />
           </Route>
         </Routes>
       </BrowserRouter>

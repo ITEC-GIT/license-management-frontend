@@ -73,6 +73,12 @@ export const getVisibleTabs = () =>
     headers: { Accept: 'application/json' }
   })
 
+// Packages
+export const getPackages = () =>
+  api.get('/api/packages', {
+    headers: { Accept: 'application/json' }
+  })
+
 // Customers
 export const getCustomers = (params) => 
   api.get('/api/customers', { params })
