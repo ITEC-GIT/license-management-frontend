@@ -3,43 +3,16 @@ import { getCustomers, getVisibleTabs } from '../services/api'
 
 const steps = [
   {
-    title: 'License'
+    title: 'Access',
   },
   {
-    title: 'Customer'
+    title: 'Customer',
   },
   {
-    title: 'Limits'
+    title: 'Limits',
   },
   {
-    title: 'Review'
-  },
-]
-
-const licenseTypes = [
-  {
-    value: 'demo',
-    label: 'Demo',
-    description: 'Short-lived access for product walkthroughs.',
-    glyph: 'D',
-  },
-  {
-    value: 'full',
-    label: 'Full',
-    description: 'Standard production license for a single customer.',
-    glyph: 'F',
-  },
-  {
-    value: 'enterprise',
-    label: 'Enterprise',
-    description: 'Expanded deployment with higher capacity needs.',
-    glyph: 'E',
-  },
-  {
-    value: 'customized',
-    label: 'Customized',
-    description: 'Choose exactly which application tabs are visible.',
-    glyph: 'C',
+    title: 'Review',
   },
 ]
 
@@ -82,7 +55,6 @@ const normalizeVisibleTab = (tab) => {
 export default function GenerateLicenseModal({ onClose, onGenerate }) {
   const backdropPointerDownRef = useRef(false)
   const [formData, setFormData] = useState({
-    license_type: 'full',
     customer_id: '',
     expires_days: '',
     max_admins: '',
@@ -150,7 +122,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
         if (isMounted) {
           setVisibleTabOptions(tabOptions)
           setFormData(prev => {
-            if (prev.license_type !== 'customized' || prev.visible_tabs.length > 0) {
+            if (prev.visible_tabs.length > 0) {
               return prev
             }
 
@@ -181,28 +153,19 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
   const isFirstStep = currentStep === 0
   const isLastStep = currentStep === steps.length - 1
-  const isCustomizedLicense = formData.license_type === 'customized'
+  const defaultVisibleTabs = visibleTabOptions.map(tab => tab.value)
+  const hasDefaultVisibleTabs =
+    formData.visible_tabs.length === defaultVisibleTabs.length &&
+    defaultVisibleTabs.every(tab => formData.visible_tabs.includes(tab))
   const isDirty =
-    formData.license_type !== 'full' ||
     ['customer_id', 'expires_days', 'max_admins', 'max_computers', 'hardware_id'].some(
       field => Boolean(formData[field])
     ) ||
-    formData.visible_tabs.length > 0
+    (formData.visible_tabs.length > 0 && !hasDefaultVisibleTabs)
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => {
-      if (name !== 'license_type') {
-        return { ...prev, [name]: value }
-      }
-
-      return {
-        ...prev,
-        license_type: value,
-        visible_tabs:
-          value === 'customized' ? visibleTabOptions.map(tab => tab.value) : [],
-      }
-    })
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleVisibleTabChange = (e) => {
@@ -237,6 +200,16 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     })
   }
 
+  const validateVisibleTabs = () => {
+    if (!visibleTabsLoading && formData.visible_tabs.length === 0) {
+      setError('Select at least one visible tab.')
+      setCurrentStep(0)
+      return false
+    }
+
+    return true
+  }
+
   const validateCustomerSelection = () => {
     if (!formData.customer_id) {
       setError('Select a customer before generating a license.')
@@ -250,6 +223,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   const goToStep = (stepIndex) => {
     if (generationComplete) return
     setError('')
+    if (stepIndex > 0 && !validateVisibleTabs()) return
     if (stepIndex > 1 && !validateCustomerSelection()) return
     setCurrentStep(stepIndex)
   }
@@ -258,13 +232,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     if (generationComplete) return
     setError('')
 
-    if (
-      currentStep === 0 &&
-      isCustomizedLicense &&
-      !visibleTabsLoading &&
-      formData.visible_tabs.length === 0
-    ) {
-      setError('Select at least one visible tab for a customized license.')
+    if (currentStep === 0 && !validateVisibleTabs()) {
       return
     }
 
@@ -302,27 +270,19 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     setLoading(true)
 
     try {
-      if (!validateCustomerSelection()) {
-        setLoading(false)
-        return
-      }
-
-      if (isCustomizedLicense && !visibleTabsLoading && formData.visible_tabs.length === 0) {
-        setError('Select at least one visible tab for a customized license.')
+      if (!validateVisibleTabs() || !validateCustomerSelection()) {
         setLoading(false)
         return
       }
 
       const data = {
-        license_type: formData.license_type,
         customer_id: formData.customer_id,
         expires_days: formData.expires_days ? parseInt(formData.expires_days) : undefined,
         max_admins: formData.max_admins ? parseInt(formData.max_admins) : undefined,
         max_computers: formData.max_computers ? parseInt(formData.max_computers) : undefined,
         hardware_id: formData.hardware_id || undefined,
-        ...(isCustomizedLicense
-          ? { package: 'custom', visible_tabs: formData.visible_tabs }
-          : {}),
+        package: 'custom',
+        visible_tabs: formData.visible_tabs,
       }
 
       await onGenerate(data)
@@ -386,9 +346,8 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   )
 
   const reviewItems = [
-    ['License type', licenseTypes.find(type => type.value === formData.license_type)?.label || formData.license_type],
+    ['Visible tabs', selectedVisibleTabs || 'None selected'],
     ['Customer', selectedCustomerLabel],
-    ...(isCustomizedLicense ? [['Visible tabs', selectedVisibleTabs || 'None selected']] : []),
     ['Expiration', formData.expires_days ? `${formData.expires_days} days` : 'No expiration'],
     ['Max admins', formData.max_admins || 'Unlimited'],
     ['Max computers', formData.max_computers || 'Unlimited'],
@@ -419,11 +378,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
         <form className="modal-form" onSubmit={handleSubmit}>
           <div className="modal-body">
-            {error && (
-              <div className="alert alert-danger">
-                {error}
-              </div>
-            )}
+          
             {generationComplete && (
               <div className="alert alert-success">
                 License generated successfully.
@@ -437,7 +392,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                   type="button"
                   className={`wizard-step ${index === currentStep ? 'active' : ''} ${index < currentStep ? 'complete' : ''}`}
                   onClick={() => goToStep(index)}
-                  disabled={generationComplete || loading || (isCustomizedLicense && visibleTabsLoading)}
+                  disabled={generationComplete || loading || visibleTabsLoading}
                   aria-current={index === currentStep ? 'step' : undefined}
                 >
                   <span className="wizard-step-index">{index + 1}</span>
@@ -451,62 +406,32 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                 <>
                   <div className="wizard-section-heading">
                     <span>Step 1 of {steps.length}</span>
-                    <h3>Pick the license profile</h3>
+                    <h3>Choose visible tabs</h3>
                   </div>
 
-                  <div className="license-type-grid">
-                    {licenseTypes.map(type => (
-                      <label
-                        key={type.value}
-                        className={`license-type-card ${formData.license_type === type.value ? 'selected' : ''}`}
-                      >
-                        <input
-                          className="visually-hidden"
-                          type="radio"
-                          name="license_type"
-                          value={type.value}
-                          checked={formData.license_type === type.value}
-                          onChange={handleChange}
-                          required
-                        />
-                        <span className="license-type-glyph" aria-hidden="true">{type.glyph}</span>
-                        <span className="license-type-card-title">{type.label}</span>
-                        <span className="license-type-card-copy">{type.description}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {isCustomizedLicense && (
-                    <div className="visible-tabs-panel">
-                      <div className="wizard-section-heading">
-                        <span>Customized access</span>
-                        <h3>Visible tabs</h3>
-                      </div>
-
-                      <div className="visible-tabs-grid">
-                        {visibleTabsLoading && (
-                          <p className="form-hint visible-tabs-message">Loading visible tabs...</p>
-                        )}
-                        {visibleTabsError && (
-                          <p className="form-hint visible-tabs-message">{visibleTabsError}</p>
-                        )}
-                        {!visibleTabsLoading && !visibleTabsError && visibleTabOptions.length === 0 && (
-                          <p className="form-hint visible-tabs-message">No visible tabs are available.</p>
-                        )}
-                        {!visibleTabsLoading && !visibleTabsError && visibleTabGroups.map(({ parent, children }) => (
-                          <div className="visible-tab-group" key={parent.id}>
-                            {renderVisibleTabCard(parent, 'visible-tab-card-parent')}
-                            {children.length > 0 && (
-                              <div className="visible-tab-children">
-                                {children.map(child => renderVisibleTabCard(child, 'visible-tab-card-child'))}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                  <div className="visible-tabs-panel">
+                    <div className="visible-tabs-grid">
+                      {visibleTabsLoading && (
+                        <p className="form-hint visible-tabs-message">Loading visible tabs...</p>
+                      )}
+                      {visibleTabsError && (
+                        <p className="form-hint visible-tabs-message">{visibleTabsError}</p>
+                      )}
+                      {!visibleTabsLoading && !visibleTabsError && visibleTabOptions.length === 0 && (
+                        <p className="form-hint visible-tabs-message">No visible tabs are available.</p>
+                      )}
+                      {!visibleTabsLoading && !visibleTabsError && visibleTabGroups.map(({ parent, children }) => (
+                        <div className="visible-tab-group" key={parent.id}>
+                          {renderVisibleTabCard(parent, 'visible-tab-card-parent')}
+                          {children.length > 0 && (
+                            <div className="visible-tab-children">
+                              {children.map(child => renderVisibleTabCard(child, 'visible-tab-card-child'))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  )}
-
+                  </div>
                 </>
               )}
 
@@ -519,6 +444,13 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
 
                   <div className="form-group wizard-field">
                     <label>Customer</label>
+                    
+                    {error && (
+                      <div className="alert alert-danger">
+                        {error}
+                      </div>
+                    )}
+
                     <select
                       name="customer_id"
                       value={formData.customer_id}
@@ -529,6 +461,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                       <option value="">
                         {customersLoading ? 'Loading customers...' : 'Select a customer'}
                       </option>
+
                       {customers.map((customer, index) => {
                         const value = getCustomerValue(customer)
 
@@ -543,6 +476,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                     {!customersLoading && !customersError && customers.length === 0 && (
                       <small className="form-hint">No customers are available yet.</small>
                     )}
+
                   </div>
                 </>
               )}
@@ -613,11 +547,6 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                   </div>
 
                   <div className="wizard-review-card">
-                    {/* <div className="wizard-review-header">
-                      <span className="wizard-review-badge">{reviewItems[0][1]}</span>
-                      <strong>{selectedCustomerLabel}</strong>
-                    </div> */}
-
                     <dl className="wizard-review-list">
                       {reviewItems.map(([label, value]) => (
                         <div key={label}>
@@ -650,7 +579,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                     type="button"
                     className="btn btn-primary"
                     onClick={handleNext}
-                    disabled={loading || (isCustomizedLicense && visibleTabsLoading)}
+                    disabled={loading || visibleTabsLoading}
                   >
                     Continue
                   </button>
@@ -658,7 +587,7 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={loading || (isCustomizedLicense && visibleTabsLoading)}
+                    disabled={loading || visibleTabsLoading}
                   >
                     {loading ? 'Generating...' : 'Generate License'}
                   </button>
