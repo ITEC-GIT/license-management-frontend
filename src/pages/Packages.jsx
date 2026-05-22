@@ -131,10 +131,6 @@ export default function Packages() {
     setSaveMessage('')
   }, [selectedPackage?.id, selectedPackageTabKey])
 
-  const largestPackage = packages.reduce(
-    (largest, packageItem) => packageItem.tabIds.length > largest.tabIds.length ? packageItem : largest,
-    { tabIds: [] }
-  )
   const uniqueTabCount = new Set(packages.flatMap(packageItem => packageItem.tabIds.map(String))).size
   const availableTabs = useMemo(() => {
     const optionsById = {}
@@ -162,122 +158,83 @@ export default function Packages() {
   const originalTabKey = sortTabIds(selectedPackage?.tabIds.map(String) || []).join(',')
   const draftTabKey = sortTabIds(draftTabIds).join(',')
   const hasPackageChanges = Boolean(selectedPackage) && originalTabKey !== draftTabKey
-  const filteredFeatureGroups = useMemo(() => {
-    const query = featureSearch.trim().toLowerCase()
-    const tabIds = new Set(availableTabs.map(tab => String(tab.id)))
-    const decorateTab = (tab) => {
-      const id = String(tab.id)
 
-      return {
-        ...tab,
-        id,
-        label: tabLookup[id]?.label || tab.label || `Feature ${id}`,
-        isSelected: selectedDraftTabIds.has(id),
-      }
-    }
-    const statusMatches = (tab) => {
-      if (featureFilter === 'enabled' && !tab.isSelected) return false
-      if (featureFilter === 'disabled' && tab.isSelected) return false
+  const getTabLabel = (tab) => {
+    const id = String(tab.id)
+    return tabLookup[id]?.label || tab.label || `Tab ${id}`
+  }
+
+  const visibleTabGroups = useMemo(() => {
+    const parentIds = new Set(availableTabs.map(tab => String(tab.id)))
+
+    return availableTabs
+      .filter(tab => !tab.parentId || !parentIds.has(String(tab.parentId)))
+      .map(parent => ({
+        parent,
+        children: availableTabs.filter(tab => String(tab.parentId) === String(parent.id)),
+      }))
+  }, [availableTabs])
+
+  const filteredVisibleTabGroups = useMemo(() => {
+    const query = featureSearch.trim().toLowerCase()
+
+    const matchesStatus = (tab) => {
+      const id = String(tab.id)
+      const isSelected = selectedDraftTabIds.has(id)
+      if (featureFilter === 'enabled' && !isSelected) return false
+      if (featureFilter === 'disabled' && isSelected) return false
       return true
     }
-    const textMatches = (tab) => {
+
+    const matchesSearch = (tab) => {
       if (!query) return true
-      return `${tab.id} ${tab.label}`.toLowerCase().includes(query)
-    }
-    const tabMatches = (tab) => {
-      return statusMatches(tab) && textMatches(tab)
-    }
-    const groupLookup = {}
-
-    availableTabs.forEach((tab) => {
       const id = String(tab.id)
-      const parentId = tab.parentId ? String(tab.parentId) : null
+      return `${id} ${getTabLabel(tab)}`.toLowerCase().includes(query)
+    }
 
-      if (!parentId || !tabIds.has(parentId)) {
-        groupLookup[id] = {
-          parent: decorateTab(tab),
-          children: [],
-        }
-      }
-    })
+    const matches = (tab) => matchesStatus(tab) && matchesSearch(tab)
 
-    availableTabs.forEach((tab) => {
-      const id = String(tab.id)
-      const parentId = tab.parentId ? String(tab.parentId) : null
-
-      if (!parentId || !tabIds.has(parentId)) return
-
-      if (!groupLookup[parentId]) {
-        const parentTab = availableTabs.find(option => String(option.id) === parentId)
-        groupLookup[parentId] = {
-          parent: parentTab
-            ? decorateTab(parentTab)
-            : {
-                id: parentId,
-                label: `Feature ${parentId}`,
-                isSelected: selectedDraftTabIds.has(parentId),
-              },
-          children: [],
-        }
-      }
-
-      groupLookup[parentId].children.push(decorateTab(tab))
-    })
-
-    return sortTabIds(Object.keys(groupLookup))
-      .map((key) => {
-        const group = groupLookup[key]
-        const parentMatchesFilter = statusMatches(group.parent)
-        const parentMatchesSearch = textMatches(group.parent)
-        const parentMatches = parentMatchesFilter && parentMatchesSearch
-        const sortedChildren = group.children.sort((a, b) =>
-          sortTabIds([a.id, b.id])[0] === a.id ? -1 : 1
-        )
-        const children = sortedChildren.filter(tabMatches)
-        const visibleChildren = parentMatchesSearch
-          ? sortedChildren.filter(statusMatches)
-          : children
+    return visibleTabGroups
+      .map(({ parent, children }) => {
+        const parentMatches = matches(parent)
+        const visibleChildren = children.filter(matches)
 
         if (!parentMatches && visibleChildren.length === 0) return null
 
         return {
-          ...group,
-          key,
-          allChildren: sortedChildren,
-          children: visibleChildren,
-          totalCount: group.children.length + 1,
-          selectedCount:
-            (group.parent.isSelected ? 1 : 0) +
-            group.children.filter(child => child.isSelected).length,
+          parent,
+          children: query || featureFilter !== 'all'
+            ? visibleChildren
+            : children.filter(matchesStatus),
         }
       })
       .filter(Boolean)
-  }, [availableTabs, featureFilter, featureSearch, selectedDraftTabIds, tabLookup])
+  }, [availableTabs, featureFilter, featureSearch, selectedDraftTabIds, tabLookup, visibleTabGroups])
 
-  const toggleParentTab = (parent, children) => {
+  const handleTabToggle = (event) => {
+    const id = String(event.target.value)
+    const checked = event.target.checked
+    const changedTab = availableTabs.find(tab => String(tab.id) === id)
+    const childIds = changedTab
+      ? availableTabs
+          .filter(tab => String(tab.parentId) === String(changedTab.id))
+          .map(tab => String(tab.id))
+      : []
+    const parentId = changedTab?.parentId ? String(changedTab.parentId) : null
+
     setSaveMessage('')
     setDraftTabIds(prev => {
-      const ids = [parent.id, ...children.map(child => child.id)].map(String)
-      const shouldEnable = ids.some(id => !prev.includes(id))
-
-      if (shouldEnable) {
-        return sortTabIds([...new Set([...prev, ...ids])]).map(String)
+      if (checked) {
+        const next = [...prev, id]
+        if (parentId) next.push(parentId)
+        return sortTabIds([...new Set(next.map(String))])
       }
 
-      return prev.filter(id => !ids.includes(id))
-    })
-  }
-
-  const toggleChildTab = (tab, parent) => {
-    const id = String(tab.id)
-    const parentId = String(parent.id)
-    setSaveMessage('')
-    setDraftTabIds(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(value => value !== id)
+      let next = prev.filter(tabId => tabId !== id)
+      if (childIds.length > 0) {
+        next = next.filter(tabId => !childIds.includes(tabId))
       }
-
-      return sortTabIds([...new Set([...prev, parentId, id])]).map(String)
+      return next
     })
   }
 
@@ -452,9 +409,9 @@ export default function Packages() {
             <div className="package-feature-editor">
               <div className="package-feature-toolbar">
                 <div>
-                  <span className="section-kicker">Feature access</span>
+                  <span className="section-kicker">Visible tabs</span>
                   <p>
-                    {draftTabIds.length} enabled from {availableTabs.length} available features
+                    {draftTabIds.length} of {availableTabs.length} selected
                   </p>
                 </div>
                 <div className="package-feature-controls">
@@ -462,10 +419,10 @@ export default function Packages() {
                     type="search"
                     value={featureSearch}
                     onChange={(event) => setFeatureSearch(event.target.value)}
-                    placeholder="Search features..."
-                    aria-label="Search package features"
+                    placeholder="Search tabs..."
+                    aria-label="Search visible tabs"
                   />
-                  <div className="package-feature-filters" aria-label="Feature filters">
+                  <div className="package-feature-filters" aria-label="Tab filters">
                     <button
                       type="button"
                       className={featureFilter === 'all' ? 'active' : ''}
@@ -478,75 +435,83 @@ export default function Packages() {
                       className={featureFilter === 'enabled' ? 'active' : ''}
                       onClick={() => setFeatureFilter('enabled')}
                     >
-                      Enabled
+                      Selected
                     </button>
                     <button
                       type="button"
                       className={featureFilter === 'disabled' ? 'active' : ''}
                       onClick={() => setFeatureFilter('disabled')}
                     >
-                      Disabled
+                      Unselected
                     </button>
                   </div>
                 </div>
               </div>
 
-              {filteredFeatureGroups.length === 0 ? (
+              {availableTabs.length === 0 ? (
                 <div className="empty-state package-feature-empty">
-                  <p>No features match the current search or filter.</p>
+                  <p>No visible tabs are available.</p>
+                </div>
+              ) : filteredVisibleTabGroups.length === 0 ? (
+                <div className="empty-state package-feature-empty">
+                  <p>No tabs match the current search or filter.</p>
                 </div>
               ) : (
-                <div className="package-feature-groups" aria-label={`${selectedPackage.name} feature IDs`}>
-                  {filteredFeatureGroups.map((group) => (
-                    <section className="package-feature-group" key={group.key}>
-                      <div className="package-feature-group-header">
-                        <div>
-                          <h3>{group.parent.label}</h3>
-                          <span>Parent tab #{group.parent.id}</span>
+                <div className="visible-tabs-panel package-visible-tabs-panel">
+                  <div className="visible-tabs-grid" aria-label={`${selectedPackage.name} visible tabs`}>
+                    {filteredVisibleTabGroups.map(({ parent, children }) => {
+                      const parentId = String(parent.id)
+                      const parentSelected = selectedDraftTabIds.has(parentId)
+
+                      return (
+                        <div className="visible-tab-group" key={parentId}>
+                          <label
+                            className={`visible-tab-card visible-tab-card-parent ${parentSelected ? 'selected' : ''}`}
+                          >
+                            <input
+                              type="checkbox"
+                              value={parentId}
+                              checked={parentSelected}
+                              onChange={handleTabToggle}
+                              disabled={saving}
+                            />
+                            <span>
+                              <strong>{getTabLabel(parent)}</strong>
+                              <small>Tab {parentId}</small>
+                            </span>
+                          </label>
+
+                          {children.length > 0 && (
+                            <div className="visible-tab-children">
+                              {children.map((tab) => {
+                                const tabId = String(tab.id)
+                                const tabSelected = selectedDraftTabIds.has(tabId)
+
+                                return (
+                                  <label
+                                    key={tabId}
+                                    className={`visible-tab-card visible-tab-card-child ${tabSelected ? 'selected' : ''}`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      value={tabId}
+                                      checked={tabSelected}
+                                      onChange={handleTabToggle}
+                                      disabled={saving}
+                                    />
+                                    <span>
+                                      <strong>{getTabLabel(tab)}</strong>
+                                      <small>Tab {tabId}</small>
+                                    </span>
+                                  </label>
+                                )
+                              })}
+                            </div>
+                          )}
                         </div>
-                        <strong>{group.selectedCount}/{group.totalCount}</strong>
-                      </div>
-
-                      <div className="package-feature-family">
-                        <button
-                          type="button"
-                          className={`package-feature-parent package-tab-toggle ${group.parent.isSelected ? 'selected' : ''}`}
-                          onClick={() => toggleParentTab(group.parent, group.allChildren)}
-                          disabled={saving}
-                          aria-pressed={group.parent.isSelected}
-                        >
-                          <strong>{group.parent.id}</strong>
-                          <span>
-                            <small>{group.parent.label}</small>
-                            <em>{group.parent.isSelected ? 'Parent enabled' : 'Parent disabled'}</em>
-                          </span>
-                        </button>
-
-                        {group.children.length > 0 ? (
-                          <div className="package-feature-children">
-                            {group.children.map((tab) => (
-                              <button
-                                type="button"
-                                className={`package-tab-pill package-tab-toggle package-child-tab ${tab.isSelected ? 'selected' : ''}`}
-                                key={tab.id}
-                                onClick={() => toggleChildTab(tab, group.parent)}
-                                disabled={saving}
-                                aria-pressed={tab.isSelected}
-                              >
-                                <strong>{tab.id}</strong>
-                                <span>
-                                  <small>{tab.label}</small>
-                                  <em>{tab.isSelected ? 'Enabled' : 'Disabled'}</em>
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="package-feature-no-children">No child tabs found for this parent.</p>
-                        )}
-                      </div>
-                    </section>
-                  ))}
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </div>

@@ -3827,6 +3827,10 @@ body::before {
   gap: 1rem;
 }
 
+.package-visible-tabs-panel {
+  margin: 0;
+}
+
 .package-feature-toolbar {
   display: flex;
   flex-wrap: wrap;
