@@ -78,27 +78,6 @@ function NavIconUsers() {
   )
 }
 
-function NavIconPackages() {
-  return (
-    <svg className="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 3.5 4.5 7.6 12 11.7l7.5-4.1L12 3.5Z"
-      />
-      <path
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M4.5 11.2 12 15.3l7.5-4.1M4.5 14.8 12 19l7.5-4.2"
-      />
-    </svg>
-  )
-}
-
 function NavIconLogout() {
   return (
     <svg className="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -169,12 +148,6 @@ export default function Layout() {
               <NavLink to="/customers" className={navLinkClass}>
                 <NavIconUsers />
                 <span>Customers</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/packages" className={navLinkClass}>
-                <NavIconPackages />
-                <span>Packages</span>
               </NavLink>
             </li>
             <li>
