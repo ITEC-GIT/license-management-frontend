@@ -249,22 +249,6 @@ export default function Packages() {
         </div>
       ) : (
         <>
-          <section className="package-summary-grid" aria-label="Package summary">
-            <div className="stat-card primary">
-              <h3>Total Packages</h3>
-              <div className="stat-value">{packages.length}</div>
-            </div>
-            <div className="stat-card success">
-              <h3>Features</h3>
-              <div className="stat-value">{uniqueTabCount}</div>
-            </div>
-            <div className="stat-card warning">
-              <h3>Largest Plan</h3>
-              <div className="stat-value">{largestPackage.tabIds.length}</div>
-              {largestPackage.name && <span className="form-hint">{formatPackageName(largestPackage.name)}</span>}
-            </div>
-          </section>
-
           <section className="package-plans-grid" aria-label="Available packages">
             {packages.map((packageItem) => {
               const isSelected = selectedPackage?.id === packageItem.id
