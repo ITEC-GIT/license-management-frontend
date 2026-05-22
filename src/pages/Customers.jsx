@@ -188,7 +188,7 @@ export default function Customers() {
             <table>
               <thead>
                 <tr>
-                  <th>Customer ID</th>
+                  <th>Customer</th>
                   <th>Total Licenses</th>
                   <th>Active</th>
                   <th>Expired</th>
@@ -198,7 +198,7 @@ export default function Customers() {
               <tbody>
                 {paginatedCustomers.map((customer) => (
                   <tr key={customer.id}>
-                    <td data-label="Customer ID">
+                    <td data-label="Customer">
                       <div className="record-title">
                         <strong>{customer.id}</strong>
                         <span>
