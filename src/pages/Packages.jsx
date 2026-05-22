@@ -220,13 +220,15 @@ export default function Packages() {
           .filter(tab => String(tab.parentId) === String(changedTab.id))
           .map(tab => String(tab.id))
       : []
-    const parentId = changedTab?.parentId ? String(changedTab.parentId) : null
+    const parentTab = changedTab?.parentId
+      ? availableTabs.find(tab => String(tab.id) === String(changedTab.parentId))
+      : null
 
     setSaveMessage('')
     setDraftTabIds(prev => {
       if (checked) {
         const next = [...prev, id]
-        if (parentId) next.push(parentId)
+        if (parentTab) next.push(String(parentTab.id))
         return sortTabIds([...new Set(next.map(String))])
       }
 
@@ -477,7 +479,6 @@ export default function Packages() {
                             />
                             <span>
                               <strong>{getTabLabel(parent)}</strong>
-                              <small>Tab {parentId}</small>
                             </span>
                           </label>
 
@@ -501,7 +502,6 @@ export default function Packages() {
                                     />
                                     <span>
                                       <strong>{getTabLabel(tab)}</strong>
-                                      <small>Tab {tabId}</small>
                                     </span>
                                   </label>
                                 )
