@@ -320,7 +320,9 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
         max_admins: formData.max_admins ? parseInt(formData.max_admins) : undefined,
         max_computers: formData.max_computers ? parseInt(formData.max_computers) : undefined,
         hardware_id: formData.hardware_id || undefined,
-        visible_tabs: isCustomizedLicense ? formData.visible_tabs : undefined,
+        ...(isCustomizedLicense
+          ? { package: 'custom', visible_tabs: formData.visible_tabs }
+          : {}),
       }
 
       await onGenerate(data)
