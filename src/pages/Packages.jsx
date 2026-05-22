@@ -516,58 +516,6 @@ export default function Packages() {
               )}
             </div>
           </div>
-
-          <div className="card package-table-card">
-            <div className="card-header">
-              <div>
-                <span className="section-kicker">Catalog matrix</span>
-                <h2>Package coverage</h2>
-              </div>
-            </div>
-
-            <div className="table-container responsive-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Package</th>
-                    <th>Feature Count</th>
-                    <th>Coverage</th>
-                    <th>First Features</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {packages.map((packageItem) => {
-                    const coverage = uniqueTabCount
-                      ? Math.round((packageItem.tabIds.length / uniqueTabCount) * 100)
-                      : 0
-
-                    return (
-                      <tr key={packageItem.id}>
-                        <td data-label="ID">
-                          <span className="license-id-token">#{packageItem.id}</span>
-                        </td>
-                        <td data-label="Package">
-                          <div className="record-title">
-                            <strong>{formatPackageName(packageItem.name)}</strong>
-                            <span>Package entitlement profile</span>
-                          </div>
-                        </td>
-                        <td data-label="Feature Count">{packageItem.tabIds.length}</td>
-                        <td data-label="Coverage">
-                          <span className="badge badge-success">{coverage}% coverage</span>
-                        </td>
-                        <td data-label="First Features" className="cell-mono">
-                          {packageItem.tabIds.slice(0, 8).join(', ')}
-                          {packageItem.tabIds.length > 8 ? '...' : ''}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </>
       )}
 
