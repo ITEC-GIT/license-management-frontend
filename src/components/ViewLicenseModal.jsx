@@ -1,19 +1,16 @@
 import { useState } from 'react'
+import {
+  getLicenseCustomerId,
+  getLicenseCustomerLabel,
+  getLicensePayload,
+  getLicenseSelectedTabs,
+  getLicenseStatus,
+} from '../utils/licenses'
 
 const visibleTabLabels = {
   dashboard: 'Dashboard',
   licenses: 'Licenses',
   customers: 'Customers',
-}
-
-const normalizeTabs = (tabs) => {
-  if (Array.isArray(tabs)) return tabs
-  if (!tabs) return []
-
-  return String(tabs)
-    .split(',')
-    .map(tab => tab.trim())
-    .filter(Boolean)
 }
 
 export default function ViewLicenseModal({ license, onClose }) {
@@ -25,21 +22,11 @@ export default function ViewLicenseModal({ license, onClose }) {
     setTimeout(() => setCopied(false), 1800)
   }
 
-  let licenseData = null
-  try {
-    licenseData = JSON.parse(license.license_key)
-  } catch (error) {
-    licenseData = null
-  }
-
-  const selectedTabs = normalizeTabs(
-    license.selected_tabs ??
-    license.visible_tabs ??
-    license.allowed_tabs ??
-    licenseData?.selected_tabs ??
-    licenseData?.visible_tabs ??
-    licenseData?.allowed_tabs
-  )
+  const licenseData = getLicensePayload(license)
+  const selectedTabs = getLicenseSelectedTabs(license)
+  const customerId = getLicenseCustomerId(license)
+  const customerLabel = getLicenseCustomerLabel(license)
+  const status = getLicenseStatus(license)
   const selectedTabsLabel = selectedTabs.length > 0
     ? selectedTabs.map(tab => visibleTabLabels[tab] || tab).join(', ')
     : license.license_type === 'full'
@@ -64,7 +51,7 @@ export default function ViewLicenseModal({ license, onClose }) {
               <span>{license.license_type?.slice(0, 1)?.toUpperCase() || 'L'}</span>
             </div>
             <div>
-              <h3>{license.customer_id || 'Unassigned license'}</h3>
+              <h3>{customerLabel}</h3>
               <p>
                 {license.hardware_id
                   ? 'This entitlement is bound to a hardware fingerprint.'
@@ -83,8 +70,11 @@ export default function ViewLicenseModal({ license, onClose }) {
                   </td>
                 </tr>
                 <tr>
-                  <td>Customer ID</td>
-                  <td>{license.customer_id || 'N/A'}</td>
+                  <td>Customer</td>
+                  <td>
+                    {license.customer_name || customerId || 'N/A'}
+                    {license.customer_name && customerId ? ` (${customerId})` : ''}
+                  </td>
                 </tr>
                 <tr>
                   <td>Issued</td>
@@ -119,14 +109,16 @@ export default function ViewLicenseModal({ license, onClose }) {
                 <tr>
                   <td>Status</td>
                   <td>
-                    {license.revoked_at ? (
+                    {status === 'revoked' ? (
                       <span className="badge badge-danger">
                         Revoked on {new Date(license.revoked_at).toLocaleDateString()}
                       </span>
-                    ) : license.expires_at && new Date(license.expires_at) <= new Date() ? (
+                    ) : status === 'expired' ? (
                       <span className="badge badge-warning">Expired</span>
-                    ) : (
+                    ) : status === 'active' ? (
                       <span className="badge badge-success">Active</span>
+                    ) : (
+                      <span className="badge badge-info">Inactive</span>
                     )}
                   </td>
                 </tr>

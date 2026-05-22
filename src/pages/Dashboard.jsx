@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getLicenses } from '../services/api'
+import { getLicenseCustomerLabel, getLicensesList } from '../utils/licenses'
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -20,7 +21,7 @@ export default function Dashboard() {
     setError('')
     try {
       const response = await getLicenses()
-      const licenses = response.data
+      const licenses = getLicensesList(response.data)
 
       // Calculate stats
       const now = new Date()
@@ -185,7 +186,7 @@ export default function Dashboard() {
                     </td>
                     <td data-label="Customer">
                       <div className="record-title">
-                        <strong>{license.customer_id || 'Unassigned'}</strong>
+                        <strong>{getLicenseCustomerLabel(license)}</strong>
                         <span>Entitlement record</span>
                       </div>
                     </td>

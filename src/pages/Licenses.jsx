@@ -4,6 +4,12 @@ import GenerateLicenseModal from '../components/GenerateLicenseModal'
 import PaginationControls from '../components/PaginationControls'
 import ViewLicenseModal from '../components/ViewLicenseModal'
 import useAdaptivePageSize from '../hooks/useAdaptivePageSize'
+import {
+  formatHardwareId,
+  getLicenseCustomerLabel,
+  getLicensesList,
+  getLicenseStatus,
+} from '../utils/licenses'
 
 const LICENSES_MAX_PAGE_SIZE = 50
 
@@ -25,7 +31,7 @@ export default function Licenses() {
     setError('')
     try {
       const response = await getLicenses()
-      setLicenses(response.data)
+      setLicenses(getLicensesList(response.data))
     } catch (error) {
       console.error('Failed to load licenses:', error)
       setError('Unable to load licenses. Please refresh or try again later.')
@@ -67,14 +73,6 @@ export default function Licenses() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  }
-
-  const getLicenseStatus = (license) => {
-    const now = new Date()
-    if (license.revoked_at) return 'revoked'
-    if (license.expires_at && new Date(license.expires_at) <= now) return 'expired'
-    if (license.is_active) return 'active'
-    return 'inactive'
   }
 
   const statusCounts = licenses.reduce(
@@ -233,7 +231,7 @@ export default function Licenses() {
                     </td>
                     <td data-label="Customer">
                       <div className="record-title">
-                        <strong>{license.customer_id || 'Unassigned'}</strong>
+                        <strong>{getLicenseCustomerLabel(license)}</strong>
                         <span>{license.hardware_id ? 'Hardware-bound key' : 'Floating entitlement'}</span>
                       </div>
                     </td>
@@ -248,8 +246,8 @@ export default function Licenses() {
                     </td>
                     <td className="cell-mono" data-label="Hardware ID">
                       {license.hardware_id ? (
-                        <span title={license.hardware_id}>
-                          {license.hardware_id.slice(0, 8)}...
+                        <span title={String(license.hardware_id)}>
+                          {formatHardwareId(license.hardware_id)}
                         </span>
                       ) : (
                         'N/A'

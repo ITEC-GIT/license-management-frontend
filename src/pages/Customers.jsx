@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import PaginationControls from '../components/PaginationControls'
 import { createCustomer, getCustomers, getLicenses } from '../services/api'
 import useAdaptivePageSize from '../hooks/useAdaptivePageSize'
+import { getLicensesList, resolveLicenseCustomerKey } from '../utils/licenses'
 
 const CUSTOMERS_MAX_PAGE_SIZE = 50
 
@@ -27,7 +28,7 @@ export default function Customers() {
       const customerList = Array.isArray(customersResponse.data)
         ? customersResponse.data
         : customersResponse.data?.customers || customersResponse.data?.items || []
-      const licenses = licensesResponse.data
+      const licenses = getLicensesList(licensesResponse.data)
 
       const customerMap = {}
       customerList.forEach((customer) => {
@@ -44,15 +45,17 @@ export default function Customers() {
       })
 
       licenses.forEach((license) => {
-        const customerId = license.customer_id || 'Unknown'
+        const customerId = resolveLicenseCustomerKey(license, customerMap)
         if (!customerMap[customerId]) {
           customerMap[customerId] = {
             id: customerId,
-            name: '',
+            name: license.customer_name || '',
             licenses: [],
             activeLicenses: 0,
             expiredLicenses: 0
           }
+        } else if (!customerMap[customerId].name && license.customer_name) {
+          customerMap[customerId].name = license.customer_name
         }
         customerMap[customerId].licenses.push(license)
 
