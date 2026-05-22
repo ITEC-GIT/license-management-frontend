@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getPackages, getVisibleTabs, updatePackageTabs } from '../services/api'
+import { createPackage, getPackages, getVisibleTabs, updatePackageTabs } from '../services/api'
 
 const formatTabLabel = (value) =>
   String(value)
@@ -20,15 +20,20 @@ const normalizeVisibleTab = (tab) => {
   if (typeof tab === 'string' || typeof tab === 'number') {
     return {
       id: String(tab),
+      parentId: null,
       label: formatTabLabel(tab),
     }
   }
 
   const id = String(tab.id ?? tab.tab_id ?? tab.value ?? tab.key ?? tab.name ?? tab.label ?? '')
   const value = tab.tab_name ?? tab.value ?? tab.key ?? tab.name ?? tab.label ?? id
+  const parentId = tab.parent_tab_id === null || tab.parent_tab_id === undefined
+    ? null
+    : String(tab.parent_tab_id)
 
   return {
     id,
+    parentId,
     label: tab.display_tab_name || tab.display_name || tab.label || tab.name || tab.title || formatTabLabel(value),
   }
 }
@@ -70,6 +75,9 @@ export default function Packages() {
   const [draftTabIds, setDraftTabIds] = useState([])
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+  const [featureSearch, setFeatureSearch] = useState('')
+  const [featureFilter, setFeatureFilter] = useState('all')
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   useEffect(() => {
     loadPackages()
@@ -141,6 +149,7 @@ export default function Packages() {
         if (!optionsById[id]) {
           optionsById[id] = {
             id,
+            parentId: null,
             label: `Feature ${id}`,
           }
         }
@@ -153,22 +162,141 @@ export default function Packages() {
   const originalTabKey = sortTabIds(selectedPackage?.tabIds.map(String) || []).join(',')
   const draftTabKey = sortTabIds(draftTabIds).join(',')
   const hasPackageChanges = Boolean(selectedPackage) && originalTabKey !== draftTabKey
+  const filteredFeatureGroups = useMemo(() => {
+    const query = featureSearch.trim().toLowerCase()
+    const tabIds = new Set(availableTabs.map(tab => String(tab.id)))
+    const decorateTab = (tab) => {
+      const id = String(tab.id)
 
-  const toggleDraftTab = (tabId) => {
-    const id = String(tabId)
+      return {
+        ...tab,
+        id,
+        label: tabLookup[id]?.label || tab.label || `Feature ${id}`,
+        isSelected: selectedDraftTabIds.has(id),
+      }
+    }
+    const statusMatches = (tab) => {
+      if (featureFilter === 'enabled' && !tab.isSelected) return false
+      if (featureFilter === 'disabled' && tab.isSelected) return false
+      return true
+    }
+    const textMatches = (tab) => {
+      if (!query) return true
+      return `${tab.id} ${tab.label}`.toLowerCase().includes(query)
+    }
+    const tabMatches = (tab) => {
+      return statusMatches(tab) && textMatches(tab)
+    }
+    const groupLookup = {}
+
+    availableTabs.forEach((tab) => {
+      const id = String(tab.id)
+      const parentId = tab.parentId ? String(tab.parentId) : null
+
+      if (!parentId || !tabIds.has(parentId)) {
+        groupLookup[id] = {
+          parent: decorateTab(tab),
+          children: [],
+        }
+      }
+    })
+
+    availableTabs.forEach((tab) => {
+      const id = String(tab.id)
+      const parentId = tab.parentId ? String(tab.parentId) : null
+
+      if (!parentId || !tabIds.has(parentId)) return
+
+      if (!groupLookup[parentId]) {
+        const parentTab = availableTabs.find(option => String(option.id) === parentId)
+        groupLookup[parentId] = {
+          parent: parentTab
+            ? decorateTab(parentTab)
+            : {
+                id: parentId,
+                label: `Feature ${parentId}`,
+                isSelected: selectedDraftTabIds.has(parentId),
+              },
+          children: [],
+        }
+      }
+
+      groupLookup[parentId].children.push(decorateTab(tab))
+    })
+
+    return sortTabIds(Object.keys(groupLookup))
+      .map((key) => {
+        const group = groupLookup[key]
+        const parentMatchesFilter = statusMatches(group.parent)
+        const parentMatchesSearch = textMatches(group.parent)
+        const parentMatches = parentMatchesFilter && parentMatchesSearch
+        const sortedChildren = group.children.sort((a, b) =>
+          sortTabIds([a.id, b.id])[0] === a.id ? -1 : 1
+        )
+        const children = sortedChildren.filter(tabMatches)
+        const visibleChildren = parentMatchesSearch
+          ? sortedChildren.filter(statusMatches)
+          : children
+
+        if (!parentMatches && visibleChildren.length === 0) return null
+
+        return {
+          ...group,
+          key,
+          allChildren: sortedChildren,
+          children: visibleChildren,
+          totalCount: group.children.length + 1,
+          selectedCount:
+            (group.parent.isSelected ? 1 : 0) +
+            group.children.filter(child => child.isSelected).length,
+        }
+      })
+      .filter(Boolean)
+  }, [availableTabs, featureFilter, featureSearch, selectedDraftTabIds, tabLookup])
+
+  const toggleParentTab = (parent, children) => {
+    setSaveMessage('')
+    setDraftTabIds(prev => {
+      const ids = [parent.id, ...children.map(child => child.id)].map(String)
+      const shouldEnable = ids.some(id => !prev.includes(id))
+
+      if (shouldEnable) {
+        return sortTabIds([...new Set([...prev, ...ids])]).map(String)
+      }
+
+      return prev.filter(id => !ids.includes(id))
+    })
+  }
+
+  const toggleChildTab = (tab, parent) => {
+    const id = String(tab.id)
+    const parentId = String(parent.id)
     setSaveMessage('')
     setDraftTabIds(prev => {
       if (prev.includes(id)) {
         return prev.filter(value => value !== id)
       }
 
-      return sortTabIds([...prev, id]).map(String)
+      return sortTabIds([...new Set([...prev, parentId, id])]).map(String)
     })
   }
 
   const resetDraftTabs = () => {
     setDraftTabIds(selectedPackage?.tabIds.map(String) || [])
     setSaveMessage('')
+  }
+
+  const handleCreatePackage = async (data) => {
+    const response = await createPackage(data)
+    const created = response.data?.package || response.data
+    const normalized = normalizePackage(created)
+
+    setPackages(prev => {
+      const next = [...prev, normalized].sort((a, b) => a.id - b.id)
+      return next
+    })
+    setSelectedPackageId(normalized.id)
+    setShowCreateModal(false)
   }
 
   const savePackageTabs = async () => {
@@ -224,6 +352,15 @@ export default function Packages() {
           <p className="page-subtitle">
             Review Standard, Pro, and Super package coverage with a fast breakdown of entitlement scope.
           </p>
+          <div className="hero-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setShowCreateModal(true)}
+            >
+              New package
+            </button>
+          </div>
         </div>
 
         <div className="packages-hero-panel" aria-hidden="true">
@@ -245,7 +382,14 @@ export default function Packages() {
 
       {packages.length === 0 ? (
         <div className="empty-state">
-          <p>No packages found.</p>
+          <p>No packages found. Create your first package to configure feature access.</p>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setShowCreateModal(true)}
+          >
+            New package
+          </button>
         </div>
       ) : (
         <>
@@ -305,24 +449,106 @@ export default function Packages() {
 
             {saveMessage && <div className="alert alert-success package-save-alert">{saveMessage}</div>}
 
-            <div className="package-tab-cloud package-tab-editor" aria-label={`${selectedPackage.name} feature IDs`}>
-              {availableTabs.map((tab) => {
-                const isSelected = selectedDraftTabIds.has(String(tab.id))
+            <div className="package-feature-editor">
+              <div className="package-feature-toolbar">
+                <div>
+                  <span className="section-kicker">Feature access</span>
+                  <p>
+                    {draftTabIds.length} enabled from {availableTabs.length} available features
+                  </p>
+                </div>
+                <div className="package-feature-controls">
+                  <input
+                    type="search"
+                    value={featureSearch}
+                    onChange={(event) => setFeatureSearch(event.target.value)}
+                    placeholder="Search features..."
+                    aria-label="Search package features"
+                  />
+                  <div className="package-feature-filters" aria-label="Feature filters">
+                    <button
+                      type="button"
+                      className={featureFilter === 'all' ? 'active' : ''}
+                      onClick={() => setFeatureFilter('all')}
+                    >
+                      All
+                    </button>
+                    <button
+                      type="button"
+                      className={featureFilter === 'enabled' ? 'active' : ''}
+                      onClick={() => setFeatureFilter('enabled')}
+                    >
+                      Enabled
+                    </button>
+                    <button
+                      type="button"
+                      className={featureFilter === 'disabled' ? 'active' : ''}
+                      onClick={() => setFeatureFilter('disabled')}
+                    >
+                      Disabled
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-                return (
-                  <button
-                    type="button"
-                    className={`package-tab-pill package-tab-toggle ${isSelected ? 'selected' : ''}`}
-                    key={tab.id}
-                    onClick={() => toggleDraftTab(tab.id)}
-                    disabled={saving}
-                    aria-pressed={isSelected}
-                  >
-                    <strong>{tab.id}</strong>
-                    <small>{tabLookup[String(tab.id)]?.label || tab.label || `Feature ${tab.id}`}</small>
-                  </button>
-                )
-              })}
+              {filteredFeatureGroups.length === 0 ? (
+                <div className="empty-state package-feature-empty">
+                  <p>No features match the current search or filter.</p>
+                </div>
+              ) : (
+                <div className="package-feature-groups" aria-label={`${selectedPackage.name} feature IDs`}>
+                  {filteredFeatureGroups.map((group) => (
+                    <section className="package-feature-group" key={group.key}>
+                      <div className="package-feature-group-header">
+                        <div>
+                          <h3>{group.parent.label}</h3>
+                          <span>Parent tab #{group.parent.id}</span>
+                        </div>
+                        <strong>{group.selectedCount}/{group.totalCount}</strong>
+                      </div>
+
+                      <div className="package-feature-family">
+                        <button
+                          type="button"
+                          className={`package-feature-parent package-tab-toggle ${group.parent.isSelected ? 'selected' : ''}`}
+                          onClick={() => toggleParentTab(group.parent, group.allChildren)}
+                          disabled={saving}
+                          aria-pressed={group.parent.isSelected}
+                        >
+                          <strong>{group.parent.id}</strong>
+                          <span>
+                            <small>{group.parent.label}</small>
+                            <em>{group.parent.isSelected ? 'Parent enabled' : 'Parent disabled'}</em>
+                          </span>
+                        </button>
+
+                        {group.children.length > 0 ? (
+                          <div className="package-feature-children">
+                            {group.children.map((tab) => (
+                              <button
+                                type="button"
+                                className={`package-tab-pill package-tab-toggle package-child-tab ${tab.isSelected ? 'selected' : ''}`}
+                                key={tab.id}
+                                onClick={() => toggleChildTab(tab, group.parent)}
+                                disabled={saving}
+                                aria-pressed={tab.isSelected}
+                              >
+                                <strong>{tab.id}</strong>
+                                <span>
+                                  <small>{tab.label}</small>
+                                  <em>{tab.isSelected ? 'Enabled' : 'Disabled'}</em>
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="package-feature-no-children">No child tabs found for this parent.</p>
+                        )}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -379,6 +605,95 @@ export default function Packages() {
           </div>
         </>
       )}
+
+      {showCreateModal && (
+        <CreatePackageModal
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreatePackage}
+        />
+      )}
+    </div>
+  )
+}
+
+function CreatePackageModal({ onClose, onCreate }) {
+  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setError('')
+
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      setError('Package name is required')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      await onCreate({ name: trimmedName })
+    } catch (createError) {
+      setError(createError.response?.data?.detail || 'Failed to create package')
+      setLoading(false)
+    }
+  }
+
+  const requestClose = () => {
+    if (loading) return
+    onClose()
+  }
+
+  return (
+    <div className="modal-overlay" onClick={requestClose}>
+      <div className="modal" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <h2>New Package</h2>
+          </div>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={requestClose}
+            aria-label="Close new package dialog"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form className="modal-form" onSubmit={handleSubmit}>
+          <div className="modal-body">
+            {error && <div className="alert alert-danger">{error}</div>}
+
+            <div className="form-group">
+              <input
+                type="text"
+                name="name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Package name"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={requestClose}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Creating...' : 'Create package'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

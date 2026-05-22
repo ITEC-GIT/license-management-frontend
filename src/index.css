@@ -3822,9 +3822,235 @@ body::before {
   margin-bottom: 1rem;
 }
 
+.package-feature-editor {
+  display: grid;
+  gap: 1rem;
+}
+
+.package-feature-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(248, 250, 252, 0.96), rgba(239, 246, 255, 0.86)),
+    radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.13), transparent 12rem);
+}
+
+.package-feature-toolbar p {
+  margin: 0.18rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.package-feature-controls {
+  display: flex;
+  flex: 1 1 360px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.package-feature-controls input {
+  flex: 1 1 180px;
+  min-width: min(100%, 180px);
+  min-height: 2.35rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.package-feature-controls input:focus {
+  outline: none;
+  border-color: rgba(29, 78, 216, 0.35);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+.package-feature-filters {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.package-feature-filters button {
+  min-height: 1.9rem;
+  padding: 0.32rem 0.65rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.package-feature-filters button.active {
+  background: #eff8ff;
+  color: #175cd3;
+}
+
+.package-feature-groups {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.package-feature-group {
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.package-feature-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  background: #f8fafc;
+}
+
+.package-feature-group-header h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.package-feature-group-header span {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--text-subtle);
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.package-feature-group-header strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: #eff8ff;
+  color: #175cd3;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.package-feature-group .package-tab-cloud {
+  padding: 0.85rem;
+}
+
+.package-feature-family {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+}
+
+.package-feature-parent {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.85rem;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, #ffffff, #f8fafc),
+    radial-gradient(circle at 100% 0%, rgba(29, 78, 216, 0.09), transparent 10rem);
+  box-shadow: var(--shadow-sm);
+}
+
+.package-feature-parent strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.4rem;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #eff6ff, #ccfbf1);
+  color: #1d4ed8;
+  font-weight: 950;
+}
+
+.package-feature-parent small {
+  display: block;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+.package-feature-parent.selected {
+  border-color: rgba(23, 92, 211, 0.32);
+  background: #eff8ff;
+}
+
+.package-feature-parent.selected strong {
+  background: linear-gradient(135deg, #1d4ed8, #2dd4bf);
+  color: #ffffff;
+}
+
+.package-feature-children {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.65rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(29, 78, 216, 0.14);
+}
+
+.package-child-tab {
+  position: relative;
+}
+
+.package-child-tab::before {
+  content: '';
+  position: absolute;
+  left: -1rem;
+  top: 50%;
+  width: 0.7rem;
+  height: 2px;
+  background: rgba(29, 78, 216, 0.16);
+}
+
+.package-feature-no-children {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px dashed rgba(15, 23, 42, 0.14);
+  border-radius: 14px;
+  background: #f8fafc;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.package-feature-empty {
+  padding: 1.5rem;
+}
+
 .package-tab-cloud {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(136px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 0.65rem;
 }
 
@@ -3883,11 +4109,27 @@ body::before {
 }
 
 .package-tab-pill small {
+  display: block;
   min-width: 0;
   color: var(--text-muted);
-  font-size: 0.78rem;
-  font-weight: 750;
+  font-size: 0.82rem;
+  font-weight: 850;
   overflow-wrap: anywhere;
+}
+
+.package-tab-pill em {
+  display: inline-flex;
+  margin-top: 0.2rem;
+  color: var(--text-subtle);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.package-tab-toggle.selected em {
+  color: #047857;
 }
 
 .package-table-card table {
@@ -4319,6 +4561,53 @@ body {
 
   .package-detail-actions .btn {
     flex: 1 1 7rem;
+  }
+
+  .package-feature-toolbar {
+    align-items: stretch;
+    padding: 0.85rem;
+  }
+
+  .package-feature-controls {
+    flex-basis: 100%;
+    justify-content: stretch;
+  }
+
+  .package-feature-controls input,
+  .package-feature-filters {
+    width: 100%;
+  }
+
+  .package-feature-filters button {
+    flex: 1 1 0;
+  }
+
+  .package-feature-group-header {
+    align-items: flex-start;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .package-feature-group .package-tab-cloud {
+    padding: 0.7rem;
+  }
+
+  .package-feature-family {
+    padding: 0.7rem;
+  }
+
+  .package-feature-parent {
+    align-items: flex-start;
+    padding: 0.75rem;
+  }
+
+  .package-feature-children {
+    grid-template-columns: 1fr;
+    padding-left: 0.75rem;
+  }
+
+  .package-child-tab::before {
+    left: -0.75rem;
+    width: 0.5rem;
   }
 
   .package-tab-pill {

@@ -79,6 +79,11 @@ export const getPackages = () =>
     headers: { Accept: 'application/json' }
   })
 
+export const createPackage = (data) =>
+  api.post('/api/packages', data, {
+    headers: { Accept: 'application/json' }
+  })
+
 export const updatePackageTabs = (id, tabIds) =>
   api.post(
     `/api/packages/${id}/tabs`,
