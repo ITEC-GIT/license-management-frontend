@@ -52,6 +52,11 @@ const normalizeVisibleTab = (tab) => {
   }
 }
 
+const parsePayloadNumber = (value) => {
+  const parsedValue = Number(value)
+  return Number.isNaN(parsedValue) ? value : parsedValue
+}
+
 export default function GenerateLicenseModal({ onClose, onGenerate }) {
   const backdropPointerDownRef = useRef(false)
   const [formData, setFormData] = useState({
@@ -220,11 +225,22 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     return true
   }
 
+  const validateLimits = () => {
+    if (!formData.expires_days || !formData.max_admins || !formData.max_computers) {
+      setError('Expiration days, max admins, and max computers are required.')
+      setCurrentStep(2)
+      return false
+    }
+
+    return true
+  }
+
   const goToStep = (stepIndex) => {
     if (generationComplete) return
     setError('')
     if (stepIndex > 0 && !validateVisibleTabs()) return
     if (stepIndex > 1 && !validateCustomerSelection()) return
+    if (stepIndex > 2 && !validateLimits()) return
     setCurrentStep(stepIndex)
   }
 
@@ -237,6 +253,10 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     }
 
     if (currentStep === 1 && !validateCustomerSelection()) {
+      return
+    }
+
+    if (currentStep === 2 && !validateLimits()) {
       return
     }
 
@@ -270,19 +290,20 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
     setLoading(true)
 
     try {
-      if (!validateVisibleTabs() || !validateCustomerSelection()) {
+      if (!validateVisibleTabs() || !validateCustomerSelection() || !validateLimits()) {
         setLoading(false)
         return
       }
 
       const data = {
-        customer_id: formData.customer_id,
-        expires_days: formData.expires_days ? parseInt(formData.expires_days) : undefined,
-        max_admins: formData.max_admins ? parseInt(formData.max_admins) : undefined,
-        max_computers: formData.max_computers ? parseInt(formData.max_computers) : undefined,
+        license_type: 'full',
+        customer_id: parsePayloadNumber(formData.customer_id),
+        expires_days: parseInt(formData.expires_days, 10),
+        package: 'standard',
+        max_admins: parseInt(formData.max_admins, 10),
+        max_computers: parseInt(formData.max_computers, 10),
         hardware_id: formData.hardware_id || undefined,
-        package: 'custom',
-        visible_tabs: formData.visible_tabs,
+        selected_tabs: formData.visible_tabs,
       }
 
       await onGenerate(data)
@@ -348,9 +369,9 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
   const reviewItems = [
     ['Visible tabs', selectedVisibleTabs || 'None selected'],
     ['Customer', selectedCustomerLabel],
-    ['Expiration', formData.expires_days ? `${formData.expires_days} days` : 'No expiration'],
-    ['Max admins', formData.max_admins || 'Unlimited'],
-    ['Max computers', formData.max_computers || 'Unlimited'],
+    ['Expiration', formData.expires_days ? `${formData.expires_days} days` : 'Required'],
+    ['Max admins', formData.max_admins || 'Required'],
+    ['Max computers', formData.max_computers || 'Required'],
     ['Hardware binding', formData.hardware_id || 'No hardware binding'],
   ]
 
@@ -488,6 +509,12 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                     <h3>Define access boundaries</h3>
                   </div>
 
+                  {error && (
+                    <div className="alert alert-danger">
+                      {error}
+                    </div>
+                  )}
+
                   <div className="wizard-form-grid">
                     <div className="form-group">
                       <label>Expires In (Days)</label>
@@ -496,8 +523,9 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                         name="expires_days"
                         value={formData.expires_days}
                         onChange={handleChange}
-                        placeholder="Leave empty for no expiration"
+                        placeholder="Required"
                         min="1"
+                        required
                       />
                     </div>
 
@@ -508,8 +536,9 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                         name="max_admins"
                         value={formData.max_admins}
                         onChange={handleChange}
-                        placeholder="Leave empty for unlimited"
+                        placeholder="Required"
                         min="1"
+                        required
                       />
                     </div>
 
@@ -520,8 +549,9 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
                         name="max_computers"
                         value={formData.max_computers}
                         onChange={handleChange}
-                        placeholder="Leave empty for unlimited"
+                        placeholder="Required"
                         min="1"
+                        required
                       />
                     </div>
 
