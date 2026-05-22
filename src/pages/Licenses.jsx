@@ -4,12 +4,7 @@ import GenerateLicenseModal from '../components/GenerateLicenseModal'
 import PaginationControls from '../components/PaginationControls'
 import ViewLicenseModal from '../components/ViewLicenseModal'
 import useAdaptivePageSize from '../hooks/useAdaptivePageSize'
-import {
-  formatHardwareId,
-  getLicenseCustomerLabel,
-  getLicensesList,
-  getLicenseStatus,
-} from '../utils/licenses'
+import { formatHardwareId, getLicensesList, getLicenseStatus } from '../utils/licenses'
 
 const LICENSES_MAX_PAGE_SIZE = 50
 
@@ -231,7 +226,7 @@ export default function Licenses() {
                     </td>
                     <td data-label="Customer">
                       <div className="record-title">
-                        <strong>{getLicenseCustomerLabel(license)}</strong>
+                        <strong>{license.customer_name || 'Unassigned'}</strong>
                         <span>{license.hardware_id ? 'Hardware-bound key' : 'Floating entitlement'}</span>
                       </div>
                     </td>

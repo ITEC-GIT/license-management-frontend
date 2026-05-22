@@ -1,11 +1,5 @@
 import { useState } from 'react'
-import {
-  getLicenseCustomerId,
-  getLicenseCustomerLabel,
-  getLicensePayload,
-  getLicenseSelectedTabs,
-  getLicenseStatus,
-} from '../utils/licenses'
+import { getLicensePayload, getLicenseStatus } from '../utils/licenses'
 
 const visibleTabLabels = {
   dashboard: 'Dashboard',
@@ -23,9 +17,7 @@ export default function ViewLicenseModal({ license, onClose }) {
   }
 
   const licenseData = getLicensePayload(license)
-  const selectedTabs = getLicenseSelectedTabs(license)
-  const customerId = getLicenseCustomerId(license)
-  const customerLabel = getLicenseCustomerLabel(license)
+  const selectedTabs = Array.isArray(license.selected_tabs) ? license.selected_tabs : []
   const status = getLicenseStatus(license)
   const selectedTabsLabel = selectedTabs.length > 0
     ? selectedTabs.map(tab => visibleTabLabels[tab] || tab).join(', ')
@@ -51,7 +43,7 @@ export default function ViewLicenseModal({ license, onClose }) {
               <span>{license.license_type?.slice(0, 1)?.toUpperCase() || 'L'}</span>
             </div>
             <div>
-              <h3>{customerLabel}</h3>
+              <h3>{license.customer_name || 'Unassigned'}</h3>
               <p>
                 {license.hardware_id
                   ? 'This entitlement is bound to a hardware fingerprint.'
@@ -71,10 +63,7 @@ export default function ViewLicenseModal({ license, onClose }) {
                 </tr>
                 <tr>
                   <td>Customer</td>
-                  <td>
-                    {license.customer_name || customerId || 'N/A'}
-                    {license.customer_name && customerId ? ` (${customerId})` : ''}
-                  </td>
+                  <td>{license.customer_name || 'N/A'}</td>
                 </tr>
                 <tr>
                   <td>Issued</td>

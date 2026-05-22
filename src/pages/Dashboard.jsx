@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getLicenses } from '../services/api'
-import { getLicenseCustomerLabel, getLicensesList } from '../utils/licenses'
+import { getLicensesList } from '../utils/licenses'
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -186,7 +186,7 @@ export default function Dashboard() {
                     </td>
                     <td data-label="Customer">
                       <div className="record-title">
-                        <strong>{getLicenseCustomerLabel(license)}</strong>
+                        <strong>{license.customer_name || 'Unassigned'}</strong>
                         <span>Entitlement record</span>
                       </div>
                     </td>
