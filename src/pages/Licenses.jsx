@@ -222,12 +222,11 @@ export default function Licenses() {
                 {paginatedLicenses.map((license) => (
                   <tr key={license.id} className={`registry-row row-${getLicenseStatus(license)}`}>
                     <td data-label="ID">
-                      <span className="license-id-token">#{license.id}</span>
+                      <span className="license-id-token">{license.id}</span>
                     </td>
                     <td data-label="Customer">
                       <div className="record-title">
                         <strong>{license.customer_name || 'Unassigned'}</strong>
-                        <span>{license.hardware_id ? 'Hardware-bound key' : 'Floating entitlement'}</span>
                       </div>
                     </td>
                     <td data-label="Type">
