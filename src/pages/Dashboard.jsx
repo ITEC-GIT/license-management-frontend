@@ -180,14 +180,10 @@ export default function Dashboard() {
               <tbody>
                 {recentLicenses.map((license, index) => (
                   <tr key={license.id}>
-                    <td data-label="ID">
-                      <span className="activity-index">{String(index + 1).padStart(2, '0')}</span>
-                      #{license.id}
-                    </td>
+                    <td data-label="ID">{license.id}</td>
                     <td data-label="Customer">
                       <div className="record-title">
                         <strong>{license.customer_name || 'Unassigned'}</strong>
-                        <span>Entitlement record</span>
                       </div>
                     </td>
                     <td data-label="Type">
