@@ -299,7 +299,6 @@ export default function GenerateLicenseModal({ onClose, onGenerate }) {
         license_type: 'full',
         customer_id: parsePayloadNumber(formData.customer_id),
         expires_days: parseInt(formData.expires_days, 10),
-        package: 'standard',
         max_admins: parseInt(formData.max_admins, 10),
         max_computers: parseInt(formData.max_computers, 10),
         hardware_id: formData.hardware_id || undefined,
