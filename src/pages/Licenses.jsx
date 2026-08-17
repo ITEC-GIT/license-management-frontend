@@ -84,19 +84,7 @@ export default function Licenses() {
   const filteredLicenses = licenses.filter((license) => {
     if (filter !== 'all' && getLicenseStatus(license) !== filter) return false
     if (!searchQuery) return true
-
-    const haystack = [
-      license.id,
-      license.customer_name,
-      license.license_type,
-      license.hardware_id,
-      getLicenseStatus(license),
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-
-    return haystack.includes(searchQuery)
+    return (license.customer_name || '').toLowerCase().includes(searchQuery)
   })
   const pageSize = useAdaptivePageSize({
     containerRef: tableContainerRef,
@@ -135,7 +123,7 @@ export default function Licenses() {
       return 'No licenses exist yet. Generate the first license to begin tracking customer access.'
     }
     if (searchQuery) {
-      return 'No licenses match your search.'
+      return 'No licenses match that customer name.'
     }
     return `No ${filter} licenses match the current filter.`
   }
@@ -219,8 +207,8 @@ export default function Licenses() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search licenses..."
-              aria-label="Search licenses"
+              placeholder="Search by customer name..."
+              aria-label="Search licenses by customer name"
             />
           </label>
 

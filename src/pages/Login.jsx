@@ -56,16 +56,22 @@ export default function Login() {
         </div>
 
         {error && <div className="alert alert-danger">{error}</div>}
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={handleSubmit} autoComplete="off">
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
               id="username"
+              name="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck="false"
+              readOnly
+              onFocus={(e) => e.currentTarget.removeAttribute('readOnly')}
               required
-              autoFocus
             />
           </div>
 
@@ -73,9 +79,13 @@ export default function Login() {
             <label htmlFor="password">Password</label>
             <input
               id="password"
+              name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              readOnly
+              onFocus={(e) => e.currentTarget.removeAttribute('readOnly')}
               required
             />
           </div>
