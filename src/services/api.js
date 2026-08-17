@@ -18,14 +18,18 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Handle 401 errors
+// Handle 401 errors — skip login itself so a failed sign-in
+// can show an error instead of hard-reloading the page.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isLoginRequest = error.config?.url?.includes('/api/auth/login')
+    if (error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
