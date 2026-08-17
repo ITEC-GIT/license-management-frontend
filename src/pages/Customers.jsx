@@ -11,6 +11,7 @@ export default function Customers() {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [search, setSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [error, setError] = useState('')
 
@@ -100,18 +101,32 @@ export default function Customers() {
       )
     : null
   const attentionCustomers = customers.filter((customer) => customer.expiredLicenses > 0).length
+  const searchQuery = search.trim().toLowerCase()
+  const filteredCustomers = customers.filter((customer) => {
+    if (!searchQuery) return true
+    return [customer.id, customer.name]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .includes(searchQuery)
+  })
   const pageSize = useAdaptivePageSize({
     containerRef: tableContainerRef,
-    totalItems: customers.length,
+    totalItems: filteredCustomers.length,
     maxRows: CUSTOMERS_MAX_PAGE_SIZE,
     desktopFallbackRowHeight: 56,
     mobileFallbackRowHeight: 132,
+    dependencies: [searchQuery],
   })
-  const totalPages = Math.max(1, Math.ceil(customers.length / pageSize))
-  const paginatedCustomers = customers.slice(
+  const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / pageSize))
+  const paginatedCustomers = filteredCustomers.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   )
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery])
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -171,6 +186,21 @@ export default function Customers() {
 
       <div className="card customer-card">
         <div className="card-header customer-card-actions">
+          <label className="table-search">
+            <svg className="table-search-icon" viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M8.5 3a5.5 5.5 0 0 1 4.38 8.82l3.4 3.4a.75.75 0 1 1-1.06 1.06l-3.4-3.4A5.5 5.5 0 1 1 8.5 3Zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"
+              />
+            </svg>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search customers..."
+              aria-label="Search customers"
+            />
+          </label>
           <button
             type="button"
             className="btn btn-primary"
@@ -180,9 +210,13 @@ export default function Customers() {
           </button>
         </div>
 
-        {customers.length === 0 ? (
+        {filteredCustomers.length === 0 ? (
           <div className="empty-state">
-            <p>No customers found. Create your first customer to begin tracking accounts.</p>
+            <p>
+              {customers.length === 0
+                ? 'No customers found. Create your first customer to begin tracking accounts.'
+                : 'No customers match your search.'}
+            </p>
           </div>
         ) : (
           <div className="table-container responsive-table" ref={tableContainerRef}>
@@ -229,7 +263,7 @@ export default function Customers() {
             </table>
             <PaginationControls
               currentPage={currentPage}
-              totalItems={customers.length}
+              totalItems={filteredCustomers.length}
               pageSize={pageSize}
               onPageChange={setCurrentPage}
               itemLabel="customers"

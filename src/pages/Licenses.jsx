@@ -15,6 +15,7 @@ export default function Licenses() {
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [viewLicense, setViewLicense] = useState(null)
   const [filter, setFilter] = useState('all') // all, active, expired, revoked
+  const [search, setSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [error, setError] = useState('')
 
@@ -79,9 +80,23 @@ export default function Licenses() {
     { active: 0, expired: 0, revoked: 0, inactive: 0 }
   )
 
+  const searchQuery = search.trim().toLowerCase()
   const filteredLicenses = licenses.filter((license) => {
-    if (filter === 'all') return true
-    return getLicenseStatus(license) === filter
+    if (filter !== 'all' && getLicenseStatus(license) !== filter) return false
+    if (!searchQuery) return true
+
+    const haystack = [
+      license.id,
+      license.customer_name,
+      license.license_type,
+      license.hardware_id,
+      getLicenseStatus(license),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+
+    return haystack.includes(searchQuery)
   })
   const pageSize = useAdaptivePageSize({
     containerRef: tableContainerRef,
@@ -89,7 +104,7 @@ export default function Licenses() {
     maxRows: LICENSES_MAX_PAGE_SIZE,
     desktopFallbackRowHeight: 56,
     mobileFallbackRowHeight: 172,
-    dependencies: [filter],
+    dependencies: [filter, searchQuery],
   })
   const totalPages = Math.max(1, Math.ceil(filteredLicenses.length / pageSize))
   const paginatedLicenses = filteredLicenses.slice(
@@ -99,7 +114,7 @@ export default function Licenses() {
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [filter])
+  }, [filter, searchQuery])
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -118,6 +133,9 @@ export default function Licenses() {
   const emptyMessage = () => {
     if (licenses.length === 0) {
       return 'No licenses exist yet. Generate the first license to begin tracking customer access.'
+    }
+    if (searchQuery) {
+      return 'No licenses match your search.'
     }
     return `No ${filter} licenses match the current filter.`
   }
@@ -190,13 +208,29 @@ export default function Licenses() {
             Revoked ({statusCounts.revoked})
           </button>
 
+          <label className="table-search">
+            <svg className="table-search-icon" viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M8.5 3a5.5 5.5 0 0 1 4.38 8.82l3.4 3.4a.75.75 0 1 1-1.06 1.06l-3.4-3.4A5.5 5.5 0 1 1 8.5 3Zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"
+              />
+            </svg>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search licenses..."
+              aria-label="Search licenses"
+            />
+          </label>
+
           <button
-          type="button"
-          className="btn btn-primary license-generate-action"
-          onClick={() => setShowGenerateModal(true)}
-        >
-          Generate license
-        </button>
+            type="button"
+            className="btn btn-primary license-generate-action"
+            onClick={() => setShowGenerateModal(true)}
+          >
+            Generate license
+          </button>
         </div>
 
         {filteredLicenses.length === 0 ? (

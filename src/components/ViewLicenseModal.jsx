@@ -37,85 +37,87 @@ export default function ViewLicenseModal({ license, onClose }) {
           </button>
         </div>
 
-        <div className="modal-body">
-          <div className="license-seal-card">
-            <div className="license-seal" aria-hidden="true">
-              <span>{license.license_type?.slice(0, 1)?.toUpperCase() || 'L'}</span>
+        <div className="modal-body view-license-body">
+          <div className="view-license-meta">
+            <div className="license-seal-card">
+              <div className="license-seal" aria-hidden="true">
+                <span>{license.license_type?.slice(0, 1)?.toUpperCase() || 'L'}</span>
+              </div>
+              <div>
+                <h3>{license.customer_name || 'Unassigned'}</h3>
+                <p>
+                  {license.hardware_id
+                    ? 'This entitlement is bound to a hardware fingerprint.'
+                    : 'This entitlement is currently floating and not hardware-bound.'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3>{license.customer_name || 'Unassigned'}</h3>
-              <p>
-                {license.hardware_id
-                  ? 'This entitlement is bound to a hardware fingerprint.'
-                  : 'This entitlement is currently floating and not hardware-bound.'}
-              </p>
-            </div>
-          </div>
 
-          <div className="modal-detail-block">
-            <table className="kv-table">
-              <tbody>
-                <tr>
-                  <td>Type</td>
-                  <td>
-                    <span className="badge badge-info">{license.license_type}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Customer</td>
-                  <td>{license.customer_name || 'N/A'}</td>
-                </tr>
-                <tr>
-                  <td>Issued</td>
-                  <td>{new Date(license.issued_at).toLocaleString()}</td>
-                </tr>
-                <tr>
-                  <td>Expires</td>
-                  <td>
-                    {license.expires_at
-                      ? new Date(license.expires_at).toLocaleString()
-                      : 'Never'}
-                  </td>
-                </tr>
-                <tr>
-                  <td>Max admins</td>
-                  <td>{license.max_admins || 'Unlimited'}</td>
-                </tr>
-                <tr>
-                  <td>Max computers</td>
-                  <td>{license.max_computers || 'Unlimited'}</td>
-                </tr>
-                {license.hardware_id && (
+            <div className="modal-detail-block">
+              <table className="kv-table">
+                <tbody>
                   <tr>
-                    <td>Hardware ID</td>
-                    <td className="cell-mono">{license.hardware_id}</td>
+                    <td>Type</td>
+                    <td>
+                      <span className="badge badge-info">{license.license_type}</span>
+                    </td>
                   </tr>
-                )}
-                <tr>
-                  <td>Tabs</td>
-                  <td>{selectedTabsLabel}</td>
-                </tr>
-                <tr>
-                  <td>Status</td>
-                  <td>
-                    {status === 'revoked' ? (
-                      <span className="badge badge-danger">
-                        Revoked on {new Date(license.revoked_at).toLocaleDateString()}
-                      </span>
-                    ) : status === 'expired' ? (
-                      <span className="badge badge-warning">Expired</span>
-                    ) : status === 'active' ? (
-                      <span className="badge badge-success">Active</span>
-                    ) : (
-                      <span className="badge badge-info">Inactive</span>
-                    )}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  <tr>
+                    <td>Customer</td>
+                    <td>{license.customer_name || 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td>Issued</td>
+                    <td>{new Date(license.issued_at).toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td>Expires</td>
+                    <td>
+                      {license.expires_at
+                        ? new Date(license.expires_at).toLocaleString()
+                        : 'Never'}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Max admins</td>
+                    <td>{license.max_admins || 'Unlimited'}</td>
+                  </tr>
+                  <tr>
+                    <td>Max computers</td>
+                    <td>{license.max_computers || 'Unlimited'}</td>
+                  </tr>
+                  {license.hardware_id && (
+                    <tr>
+                      <td>Hardware ID</td>
+                      <td className="cell-mono">{license.hardware_id}</td>
+                    </tr>
+                  )}
+                  <tr>
+                    <td>Tabs</td>
+                    <td>{selectedTabsLabel}</td>
+                  </tr>
+                  <tr>
+                    <td>Status</td>
+                    <td>
+                      {status === 'revoked' ? (
+                        <span className="badge badge-danger">
+                          Revoked on {new Date(license.revoked_at).toLocaleDateString()}
+                        </span>
+                      ) : status === 'expired' ? (
+                        <span className="badge badge-warning">Expired</span>
+                      ) : status === 'active' ? (
+                        <span className="badge badge-success">Active</span>
+                      ) : (
+                        <span className="badge badge-info">Inactive</span>
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div className="modal-detail-block modal-detail-block--spaced">
+          <div className="modal-detail-block view-license-json">
             <h3 className="modal-section-title">License JSON</h3>
             <div className="license-json-block">
               <button
