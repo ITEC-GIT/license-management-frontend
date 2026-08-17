@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5556,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://cobalt.pulsar.ao:5557',
+        target: process.env.VITE_API_URL || 'http://staging.pulsar.ao:5557',
         changeOrigin: true,
       }
     }
