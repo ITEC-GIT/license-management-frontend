@@ -7,6 +7,24 @@ const visibleTabLabels = {
   customers: 'Customers',
 }
 
+const formatDate = (value) => {
+  if (!value) return 'Never'
+  return new Date(value).toLocaleString()
+}
+
+const StatusBadge = ({ status, revokedAt }) => {
+  if (status === 'revoked') {
+    return (
+      <span className="badge badge-danger">
+        Revoked{revokedAt ? ` · ${new Date(revokedAt).toLocaleDateString()}` : ''}
+      </span>
+    )
+  }
+  if (status === 'expired') return <span className="badge badge-warning">Expired</span>
+  if (status === 'active') return <span className="badge badge-success">Active</span>
+  return <span className="badge badge-info">Inactive</span>
+}
+
 export default function ViewLicenseModal({ license, onClose }) {
   const [copied, setCopied] = useState(false)
 
@@ -23,14 +41,29 @@ export default function ViewLicenseModal({ license, onClose }) {
     ? selectedTabs.map(tab => visibleTabLabels[tab] || tab).join(', ')
     : license.license_type === 'full'
       ? 'All tabs'
-      : 'No tabs selected'
+      : 'None'
+  const payloadText = licenseData
+    ? JSON.stringify(licenseData, null, 2)
+    : license.license_key
+
+  const fields = [
+    { label: 'Type', value: <span className="badge badge-info">{license.license_type}</span> },
+    { label: 'Status', value: <StatusBadge status={status} revokedAt={license.revoked_at} /> },
+    { label: 'Issued', value: formatDate(license.issued_at) },
+    { label: 'Expires', value: formatDate(license.expires_at) },
+    { label: 'Max admins', value: license.max_admins || 'Unlimited' },
+    { label: 'Max computers', value: license.max_computers || 'Unlimited' },
+    { label: 'Hardware ID', value: license.hardware_id || 'Not bound', wide: true, mono: Boolean(license.hardware_id) },
+    { label: 'Tabs', value: selectedTabsLabel, wide: true },
+  ]
 
   return (
     <div className="modal-overlay view-license-overlay" onClick={onClose}>
       <div className="modal view-license-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <h2>License details · #{license.id}</h2>
+            <span className="modal-eyebrow">License #{license.id}</span>
+            <h2>{license.customer_name || 'Unassigned'}</h2>
           </div>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
             ×
@@ -38,88 +71,21 @@ export default function ViewLicenseModal({ license, onClose }) {
         </div>
 
         <div className="modal-body view-license-body">
-          <div className="view-license-meta">
-            <div className="license-seal-card">
-              <div className="license-seal" aria-hidden="true">
-                <span>{license.license_type?.slice(0, 1)?.toUpperCase() || 'L'}</span>
+          <dl className="view-license-fields">
+            {fields.map((field) => (
+              <div
+                key={field.label}
+                className={`view-license-field${field.wide ? ' view-license-field-wide' : ''}`}
+              >
+                <dt>{field.label}</dt>
+                <dd className={field.mono ? 'cell-mono' : undefined}>{field.value}</dd>
               </div>
-              <div>
-                <h3>{license.customer_name || 'Unassigned'}</h3>
-                <p>
-                  {license.hardware_id
-                    ? 'This entitlement is bound to a hardware fingerprint.'
-                    : 'This entitlement is currently floating and not hardware-bound.'}
-                </p>
-              </div>
-            </div>
+            ))}
+          </dl>
 
-            <div className="modal-detail-block">
-              <table className="kv-table">
-                <tbody>
-                  <tr>
-                    <td>Type</td>
-                    <td>
-                      <span className="badge badge-info">{license.license_type}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Customer</td>
-                    <td>{license.customer_name || 'N/A'}</td>
-                  </tr>
-                  <tr>
-                    <td>Issued</td>
-                    <td>{new Date(license.issued_at).toLocaleString()}</td>
-                  </tr>
-                  <tr>
-                    <td>Expires</td>
-                    <td>
-                      {license.expires_at
-                        ? new Date(license.expires_at).toLocaleString()
-                        : 'Never'}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Max admins</td>
-                    <td>{license.max_admins || 'Unlimited'}</td>
-                  </tr>
-                  <tr>
-                    <td>Max computers</td>
-                    <td>{license.max_computers || 'Unlimited'}</td>
-                  </tr>
-                  {license.hardware_id && (
-                    <tr>
-                      <td>Hardware ID</td>
-                      <td className="cell-mono">{license.hardware_id}</td>
-                    </tr>
-                  )}
-                  <tr>
-                    <td>Tabs</td>
-                    <td>{selectedTabsLabel}</td>
-                  </tr>
-                  <tr>
-                    <td>Status</td>
-                    <td>
-                      {status === 'revoked' ? (
-                        <span className="badge badge-danger">
-                          Revoked on {new Date(license.revoked_at).toLocaleDateString()}
-                        </span>
-                      ) : status === 'expired' ? (
-                        <span className="badge badge-warning">Expired</span>
-                      ) : status === 'active' ? (
-                        <span className="badge badge-success">Active</span>
-                      ) : (
-                        <span className="badge badge-info">Inactive</span>
-                      )}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="modal-detail-block view-license-json">
-            <h3 className="modal-section-title">License JSON</h3>
-            <div className="license-json-block">
+          <section className="view-license-payload" aria-label="License payload">
+            <div className="view-license-payload-bar">
+              <h3>Payload</h3>
               <button
                 type="button"
                 className="btn-copy-json"
@@ -127,14 +93,9 @@ export default function ViewLicenseModal({ license, onClose }) {
               >
                 {copied ? 'Copied' : 'Copy'}
               </button>
-              <pre>
-                {licenseData
-                  ? JSON.stringify(licenseData, null, 2)
-                  : license.license_key}
-              </pre>
             </div>
-            {copied && <p className="copy-feedback">License payload copied.</p>}
-          </div>
+            <pre>{payloadText}</pre>
+          </section>
         </div>
       </div>
     </div>

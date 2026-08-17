@@ -3739,60 +3739,134 @@ body {
 }
 
 .view-license-modal {
-  width: min(980px, calc(100vw - 2rem));
-  max-width: min(980px, calc(100vw - 2rem));
-  max-height: calc(100dvh - 3rem);
+  width: min(640px, calc(100vw - 2rem));
+  max-width: min(640px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2.7rem);
+  height: auto;
 }
 
 .modal-overlay.view-license-overlay {
-  padding-top: clamp(1rem, 4vh, 2.5rem);
+  align-items: center;
+  padding: 1.25rem;
   overflow: hidden;
+}
+
+.view-license-modal .modal-header {
+  align-items: flex-start;
+  padding: 0.9rem 1.15rem;
 }
 
 .view-license-modal .modal-header > div {
   min-width: 0;
 }
 
-.view-license-modal .modal-header h2,
-.view-license-modal .license-seal-card h3,
-.view-license-modal .kv-table td,
-.view-license-modal .license-json-block,
-.view-license-modal .license-json-block pre {
-  min-width: 0;
+.view-license-modal .modal-header h2 {
+  margin-top: 0.2rem;
+  font-size: 1.15rem;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
 .view-license-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem 1.15rem 1.15rem;
+}
+
+.view-license-fields {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  gap: 1.15rem 1.35rem;
-  align-items: start;
-  overflow-x: hidden;
-  overflow-y: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1.15rem;
+  margin: 0;
 }
 
-.view-license-meta,
-.view-license-json {
+.view-license-field {
   min-width: 0;
+  display: grid;
+  gap: 0.22rem;
 }
 
-.view-license-modal .license-seal-card {
-  margin-bottom: 0.85rem;
+.view-license-field-wide {
+  grid-column: 1 / -1;
 }
 
-.view-license-modal .kv-table {
-  min-width: 0;
-  table-layout: fixed;
+.view-license-field dt {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.view-license-modal .license-json-block {
-  max-width: 100%;
-  max-height: none;
-  overflow: visible;
+.view-license-field dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
-.view-license-modal .license-json-block pre {
-  overflow: visible;
+.view-license-payload {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  background: #0b1220;
+}
+
+.view-license-payload-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.view-license-payload-bar h3 {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.view-license-payload .btn-copy-json {
+  position: static;
+  top: auto;
+  right: auto;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #e2e8f0;
+  box-shadow: none;
+}
+
+.view-license-payload .btn-copy-json:hover {
+  border-color: #7dd3fc;
+  color: #7dd3fc;
+}
+
+.view-license-payload pre {
+  margin: 0;
+  padding: 0.85rem 0.9rem;
+  max-height: min(240px, 32vh);
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: #e2e8f0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .licenses-page,
@@ -3878,13 +3952,8 @@ body {
     width: min(100%, calc(100vw - 1rem));
   }
 
-  .view-license-body {
+  .view-license-fields {
     grid-template-columns: 1fr;
-  }
-
-  .view-license-modal .view-license-json {
-    padding-top: 0.25rem;
-    border-top: 1px solid var(--border);
   }
 }
 
@@ -4063,56 +4132,16 @@ body {
 
   .view-license-modal {
     width: 100%;
-  }
-
-  .view-license-modal .modal-header {
-    align-items: flex-start;
-    gap: 0.7rem;
+    height: auto;
+    max-height: calc(100dvh - 1rem);
   }
 
   .view-license-modal .modal-header h2 {
     font-size: 1rem;
-    line-height: 1.25;
   }
 
-  .view-license-modal .license-seal {
-    width: 64px;
-    border-radius: 20px;
-  }
-
-  .view-license-modal .license-seal::after {
-    border-radius: 16px;
-  }
-
-  .view-license-modal .kv-table,
-  .view-license-modal .kv-table tbody,
-  .view-license-modal .kv-table tr,
-  .view-license-modal .kv-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .view-license-modal .kv-table td {
-    padding: 0.25rem 0;
-    border-bottom: 0;
-  }
-
-  .view-license-modal .kv-table tr {
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .view-license-modal .kv-table tr:last-child {
-    border-bottom: 0;
-  }
-
-  .view-license-modal .kv-table td:first-child {
-    width: 100%;
-    padding-right: 0;
-  }
-
-  .view-license-modal .license-json-block {
-    padding: 0.7rem;
+  .view-license-payload pre {
+    max-height: min(220px, 28vh);
   }
 
   .wizard-step {
